@@ -1,6 +1,8 @@
 var io;
 var gameSocket;
 
+""" test fork Max
+"""
 /**
  * This function is called by index.js to initialize a new game instance.
  *
