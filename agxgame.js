@@ -2,7 +2,7 @@ var io;
 var gameSocket;
 
 """ test fork Max + Rom
-    And Max again + Rom
+    And Max again + Rom + RomFork
 """
 /**
  * This function is called by index.js to initialize a new game instance.
