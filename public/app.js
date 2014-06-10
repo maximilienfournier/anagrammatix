@@ -81,7 +81,7 @@ jQuery(function($){
             console.log('onNewQuestionData ' + App.myRole);
             // Update the current round
             App.currentRound = data.round;
-
+            console.log(data);
             // Change the word for the Host and Player
             App[App.myRole].newQuestion(data);
         },
@@ -196,6 +196,7 @@ jQuery(function($){
             App.$doc.on('click', '#btnStart',App.Player.onPlayerStartClick);
             App.$doc.on('click', '.btnAnswer',App.Player.onPlayerAnswerClick);
             App.$doc.on('click', '#btnPlayerRestart', App.Player.onPlayerRestart);
+            App.$doc.on('click', '.btnOpenAnswer', App.Player.onPlayerAnswerClickOpenQuestion);
         },
 
         /* *************************************
@@ -477,20 +478,7 @@ jQuery(function($){
                             App.Host.players[i].currentAnswer = data.answer;
 						}
 					}
-					/*
-                    // Get the player's score
-                    var $pScore = $('#' + data.playerId);
-
-                    // Advance player's score if it is correct
-                    if( App.Host.currentCorrectAnswer === data.answer ) {
-                        // Add 5 to the player's score
-                        $pScore.text( +$pScore.text() + 5 );
-
-                    } else {
-                        // A wrong answer was submitted, so decrement the player's score.
-                        $pScore.text( +$pScore.text() - 3 );
-                    }
-                    */
+					
                     var finished = true;
 					
 					for (var i=0; i<App.Host.numPlayersInRoom; i++){
@@ -557,6 +545,9 @@ jQuery(function($){
                         case 'basicScoring':
                             scoreForThisRound = App.Host.basicScoring(i);
                             break;
+                        case 'openQuestionScoring':
+                            scoreForThisRound = App.Host.openQuestionScoring(i);
+                            break;
                         default:
                             console.log('Scoring type unknown!!!');
                      }
@@ -606,6 +597,21 @@ jQuery(function($){
 			 		
 			 },
 			 
+             openQuestionScoring : function(playerIndex){
+                var playerAnswer = App.Host.players[playerIndex].currentAnswer;
+                var scoreForThisRound = 0;
+                console.log('playerAnswer'+playerAnswer);
+                if (typeof playerAnswer != 'undefined'){
+                    if (playerAnswer === App.Host.questionData.arrayOfAnswers[0]['value']){
+                        scoreForThisRound = 5;
+                    }
+                    else{
+                        scoreForThisRound = -3;
+                    }
+                }
+                return scoreForThisRound;
+             },
+
             /**
              * All 10 rounds have played out. End the game.
              * @param data
@@ -707,6 +713,7 @@ jQuery(function($){
                 console.log('Clicked Answer Button');
                 var $btn = $(this);      // the tapped button
                 var answer = $btn.val(); // The tapped word
+                console.log(answer);
 
                 // Send the player info and tapped word to the server so
                 // the host can check the answer.
@@ -718,6 +725,23 @@ jQuery(function($){
                     timeOfAnswer: new Date().getTime()
                 }
                 IO.socket.emit('playerAnswer',data);
+            },
+
+            onPlayerAnswerClickOpenQuestion: function() {
+                console.log('Clicked Answer Button');
+                
+                var answer = document.getElementById("openQuestionText").value;
+                // Send the player info and tapped word to the server so
+                // the host can check the answer.
+                var data = {
+                    gameId: App.gameId,
+                    playerId: App.mySocketId,
+                    answer: answer,
+                    round: App.currentRound,
+                    timeOfAnswer: new Date().getTime()
+                }
+                IO.socket.emit('playerAnswer',data);
+                
             },
 
             /**
@@ -765,10 +789,17 @@ jQuery(function($){
              */
             newQuestion : function(data) {
                 console.log('Player newQuestion called');
+                console.log(data.questionType);
                 // Switch to display the appropriate items on the player's screen
                 switch(data.questionType){
                     case 'multipleChoiceSingleAnswer':
-                        App.Player.newQuestionMultipleChoiceSingleAnswer(data);
+                        App.Player.newQuestionMultipleChoice(data);
+                        break;
+                    case 'multipleChoiceMultipleAnswer':
+                        App.Player.newQuestionMultipleChoice(data);
+                        break;
+                    case 'openQuestion':
+                        App.Player.newQuestionOpenQuestion(data);
                         break;
                     default:
                         console.log("The question type is not known for the player's display");
@@ -777,8 +808,8 @@ jQuery(function($){
                 
             },
 
-            newQuestionMultipleChoiceSingleAnswer : function(data){
-                console.log('Called newQuestionMultipleChoiceSingleAnswer');
+            newQuestionMultipleChoice : function(data){
+                console.log('Called newQuestionMultipleChoice');
                 console.log(data.arrayOfAnswers);
                 // Create an unordered list element
                 var $list = $('<ul/>').attr('id','ulAnswers');
@@ -798,6 +829,34 @@ jQuery(function($){
                             )
                         )
                 });
+
+                // Insert the list onto the screen.
+                $('#gameArea').html($list);
+            },
+
+            newQuestionOpenQuestion : function(data){
+                var $list = $('<ul/>').attr('id','ulAnswers');
+
+                // Insert a list item for each word in the word list
+                // received from the server.
+                
+                $list                                //  <ul> </ul>
+                    .append($('<li/>') 
+                        .append($('<input/>')
+                            .attr('type', 'text')
+                            .attr('id','openQuestionText')
+                        )
+
+                    )
+                    .append( $('<li/>')              //  <ul> <li> </li> </ul>
+                        .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
+                            .addClass('btnOpenAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .val('submit')               //  <ul> <li> <button class='btnAnswer' value='submit'> </button> </li> </ul>
+                            .html('Submit')              //  <ul> <li> <button class='btnAnswer' value='submit'>Submit</button> </li> </ul>
+                        )
+                    )
+            
 
                 // Insert the list onto the screen.
                 $('#gameArea').html($list);

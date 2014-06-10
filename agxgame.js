@@ -420,5 +420,15 @@ var QuestionObject2 = {
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
 };
 
-var QuestionPool = [QuestionObject1, QuestionObject2]
+var QuestionObject3 = {
+    id: 1,
+    questionType: 'openQuestion',
+    scoringType: 'openQuestionScoring',
+    numberOfSeconds : 10,
+    speedScoring: false,
+    questionText: "What's your age?",
+    arrayOfAnswers: [{value:'25', bool: true}]
+};
+
+var QuestionPool = [QuestionObject3, QuestionObject1, QuestionObject2]
 

@@ -219,6 +219,19 @@ html, body {
     color: #AE37B2;
 }
 
+#openAnswers{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+.btnOpenAnswer{
+    width: 100%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+}
 
 
 /* ******************************
