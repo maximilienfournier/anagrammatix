@@ -255,6 +255,19 @@ jQuery(function($){
               */
 
              questionData : '',
+
+             /**
+              * Time when the question has been displayed
+              */
+
+             timeBeginningQuestion : 0,
+
+             /**
+              * Number of seconds for this round
+              */
+
+             secondsForThisRound : 0,
+
             /**
              * Handler for the "Start" button on the Title Screen.
              */
@@ -393,7 +406,7 @@ jQuery(function($){
 				var $secondsLeftRound = $('#countDownPerRound');
 				//console.log('$secondsLeftRound' + $secondsLeftRound);
 				
-				App.Host.countDownVariable = App.countDown($secondsLeftRound, 10, App.Host.endThisRound);
+				App.Host.countDownVariable = App.countDown($secondsLeftRound, App.Host.secondsForThisRound, App.Host.endThisRound);
 				
 			},
 			
@@ -414,7 +427,9 @@ jQuery(function($){
                 App.Host.questionData = data;
                 App.Host.currentRound = data.round;
                 
+                App.Host.secondsForThisRound = data.numberOfSeconds;
                 App.Host.roundCountDown();
+                App.Host.timeBeginningQuestion = new Date().getTime();;
                 //App.Host.countDownForRound(10000);
             },
 
@@ -453,6 +468,7 @@ jQuery(function($){
 					for (var i=0; i<App.Host.numPlayersInRoom; i++){
 						if (App.Host.players[i].mySocketId === data.playerId){
 							App.Host.players[i].hasAlreadyAnswered = true;
+                            App.Host.players[i].timeOfAnswer = data.timeOfAnswer;
                             /*
 							if( App.Host.currentCorrectAnswer === data.answer) {
 								App.Host.players[i].correctAnswer = true;
@@ -545,13 +561,17 @@ jQuery(function($){
                             console.log('Scoring type unknown!!!');
                      }
                      
-                     // Speed scoring
+                     // Speed scoring calculated if specified in the question and if player has answered this question
                      if (App.Host.questionData.speedScoring){
-                        console.log('Speed scoring, need to save the time when player answered.')
+                        console.log('Speed scoring');
+                        var secondToAnswer = (App.Host.players[i].timeOfAnswer - App.Host.timeBeginningQuestion)/1000;
+                        scoreForThisRound *= 1-secondToAnswer/App.Host.secondsForThisRound;
+                        scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
                      }
                      
                      $pScore.text( +$pScore.text() +  scoreForThisRound);
                      App.Host.players[i].answer = '';
+                     App.Host.players[i].timeOfAnswer = 0;
                  }
              },
 
@@ -694,7 +714,8 @@ jQuery(function($){
                     gameId: App.gameId,
                     playerId: App.mySocketId,
                     answer: answer,
-                    round: App.currentRound
+                    round: App.currentRound,
+                    timeOfAnswer: new Date().getTime()
                 }
                 IO.socket.emit('playerAnswer',data);
             },

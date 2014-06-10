@@ -404,10 +404,21 @@ var QuestionObject1 = {
     id: 1,
     questionType: 'multipleChoiceSingleAnswer',
     scoringType: 'basicScoring',
-    speedScoring: false,
+    numberOfSeconds : 15,
+    speedScoring: true,
     questionText: '3 + 2 =',
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
 };
 
-var QuestionPool = [QuestionObject1]
+var QuestionObject2 = {
+    id: 1,
+    questionType: 'multipleChoiceSingleAnswer',
+    scoringType: 'basicScoring',
+    numberOfSeconds : 10,
+    speedScoring: true,
+    questionText: '3 + 1 =',
+    arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
+};
+
+var QuestionPool = [QuestionObject1, QuestionObject2]
 
