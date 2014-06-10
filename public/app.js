@@ -78,6 +78,7 @@ jQuery(function($){
          * @param data
          */
         onNewQuestionData : function(data) {
+            console.log('onNewQuestionData ' + App.myRole);
             // Update the current round
             App.currentRound = data.round;
 
@@ -236,7 +237,7 @@ jQuery(function($){
             /**
              * A reference to the correct answer for the current round.
              */
-            currentCorrectAnswer: '',
+            //currentCorrectAnswer: '',
             
             /**
              * Number of current answers.
@@ -247,7 +248,13 @@ jQuery(function($){
 			 /**
 			  * Variable containing the countdown for each round
 			  */
-			  countDownVariable : '',
+			 countDownVariable : '',
+
+             /**
+              * Variable containing question data
+              */
+
+             questionData : '',
             /**
              * Handler for the "Start" button on the Title Screen.
              */
@@ -321,7 +328,8 @@ jQuery(function($){
                     // Initialize the attributes of the players
                     for (var i=0; i<App.Host.numPlayersInRoom; i++){
                     	App.Host.players[i].hasAlreadyAnswered = false;
-                    	App.Host.players[i].correctAnswer = false;
+                    	//App.Host.players[i].correctAnswer = false;
+                        App.Host.players[i].answer = '';
                     }
                 }
             },
@@ -343,12 +351,12 @@ jQuery(function($){
 				
 				// Adding the player score area
 				for (var i=0; i< App.Host.numPlayersInRoom; i++){
-					console.log($('#playerScores').html());
+					//console.log($('#playerScores').html());
 					var newTextPlayersScores = $('#playerScores').html() + "<div id='player"+ (i+1) +"Score' class='playerScore'> <span class='score'>0</span><span class='playerName'>Player" + (i+1) +"</span> </div>";
-					console.log(newTextPlayersScores);
+					//console.log(newTextPlayersScores);
 					$('#playerScores').html(newTextPlayersScores);
 				}
-				console.log($('#playerScores').html());
+				//console.log($('#playerScores').html());
 				
                 // Display the players' names on screen
                 for (var i=0; i< App.Host.numPlayersInRoom; i++){
@@ -395,12 +403,15 @@ jQuery(function($){
              * @param data{{round: *, word: *, answer: *, list: Array}}
              */
             newQuestion : function(data) {
+                console.log('newQuestion Host');
                 // Insert the new word into the DOM
-                $('#hostWord').text(data.question);
+                //$('#hostWord').text(data.question);
+                $('#hostWord').text(data.questionText);
                 App.doTextFit('#hostWord');
 
                 // Update the data for the current round
-                App.Host.currentCorrectAnswer = data.answer;
+                //App.Host.currentCorrectAnswer = data.answer;
+                App.Host.questionData = data;
                 App.Host.currentRound = data.round;
                 
                 App.Host.roundCountDown();
@@ -438,13 +449,16 @@ jQuery(function($){
                 // yet updated to the current round.
                 if (data.round === App.currentRound){
 					
-					// Note which player has just answered
+					// Note which player has just answered and saves the answer
 					for (var i=0; i<App.Host.numPlayersInRoom; i++){
 						if (App.Host.players[i].mySocketId === data.playerId){
 							App.Host.players[i].hasAlreadyAnswered = true;
-							if( App.Host.currentCorrectAnswer === data.answer ) {
+                            /*
+							if( App.Host.currentCorrectAnswer === data.answer) {
 								App.Host.players[i].correctAnswer = true;
 							}
+                            */
+                            App.Host.players[i].currentAnswer = data.answer;
 						}
 					}
 					/*
@@ -515,21 +529,61 @@ jQuery(function($){
 			 	App.Host.timeOut = setTimeout(App.Host.endThisRound, time);
 			 },
 			 
-			 
+             /**
+             * Calculate the scores after the end of the round*
+             */
+             calculateScores : function(){
+			     // Calls the appropriate scoring function for each player
+                 for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                    var $pScore = $('#' + App.Host.players[i].mySocketId);
+                    var scoreForThisRound = 0;
+                    switch (App.Host.questionData.scoringType){
+                        case 'basicScoring':
+                            scoreForThisRound = App.Host.basicScoring(i);
+                            break;
+                        default:
+                            console.log('Scoring type unknown!!!');
+                     }
+                     
+                     // Speed scoring
+                     if (App.Host.questionData.speedScoring){
+                        console.log('Speed scoring, need to save the time when player answered.')
+                     }
+                     
+                     $pScore.text( +$pScore.text() +  scoreForThisRound);
+                     App.Host.players[i].answer = '';
+                 }
+             },
+
+             arrayObjectIndexOf : function (myArray, searchTerm, name) {
+                for(var i = 0, len = myArray.length; i < len; i++) {
+                    if (myArray[i][name] === searchTerm) return i;
+                }
+                return -1;
+            },
+
 			/**
 			 * Calculate the scores after the end of the round*
 			 */
-			 calculateScores : function(){
-			 	for (var i=0; i<App.Host.numPlayersInRoom; i++){
-			 		var $pScore = $('#' + App.Host.players[i].mySocketId);
-			 		if (App.Host.players[i].correctAnswer){
-			 			$pScore.text( +$pScore.text() + 5 );
-			 		}
-			 		else{
-			 			$pScore.text( +$pScore.text() - 3 );
-			 		}
-			 		App.Host.players[i].correctAnswer = false;
-			 	}
+			 basicScoring : function(playerIndex){
+		 		var playerAnswer = App.Host.players[playerIndex].currentAnswer;
+                var index = App.Host.arrayObjectIndexOf(App.Host.questionData.arrayOfAnswers,playerAnswer, 'value');
+                var scoreForThisRound = 0;
+                if (index === -1){
+                    // No answer from player
+                    console.log('No answer from player' + playerIndex.toString());
+                }
+                else if (App.Host.questionData.arrayOfAnswers[index]['bool'] === true){
+                    // Good answer
+                    scoreForThisRound = 5;
+                    
+                }
+                else{
+                    // Wrong answer
+                    scoreForThisRound = -3;
+                }
+                return scoreForThisRound;
+			 		
 			 },
 			 
             /**
@@ -589,6 +643,11 @@ jQuery(function($){
              * The player's name entered on the 'Join' screen.
              */
             myName: '',
+
+            /**
+             * Player's answer for this round
+             */
+            answer: '',
 			 
             /**
              * Click handler for the 'JOIN' button
@@ -684,19 +743,37 @@ jQuery(function($){
              * @param data{{round: *, word: *, answer: *, list: Array}}
              */
             newQuestion : function(data) {
+                console.log('Player newQuestion called');
+                // Switch to display the appropriate items on the player's screen
+                switch(data.questionType){
+                    case 'multipleChoiceSingleAnswer':
+                        App.Player.newQuestionMultipleChoiceSingleAnswer(data);
+                        break;
+                    default:
+                        console.log("The question type is not known for the player's display");
+                }
+
+                
+            },
+
+            newQuestionMultipleChoiceSingleAnswer : function(data){
+                console.log('Called newQuestionMultipleChoiceSingleAnswer');
+                console.log(data.arrayOfAnswers);
                 // Create an unordered list element
                 var $list = $('<ul/>').attr('id','ulAnswers');
 
                 // Insert a list item for each word in the word list
                 // received from the server.
-                $.each(data.list, function(){
+
+                //$.each(data.list, function(){
+                $.each(data.arrayOfAnswers, function(){
                     $list                                //  <ul> </ul>
                         .append( $('<li/>')              //  <ul> <li> </li> </ul>
                             .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
                                 .addClass('btnAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
                                 .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .val(this)               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
-                                .html(this)              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
+                                .val(this['value'])               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                                .html(this['value'])              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
                             )
                         )
                 });
@@ -756,8 +833,8 @@ jQuery(function($){
          */
         countDown : function( $el, startTime, callback) {
 			
-			console.log("$el", $el);
-			console.log("$el[selector]",$el['selector']);
+			//console.log("$el", $el);
+			//console.log("$el[selector]",$el['selector']);
 			
             // Display the starting time on the screen.
             $el.text(startTime);

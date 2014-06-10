@@ -1,9 +1,9 @@
 var io;
 var gameSocket;
 
-""" test fork Max + Rom
+/*test fork Max + Rom
     And Max again + Rom + RomFork
-"""
+*/
 /**
  * This function is called by index.js to initialize a new game instance.
  *
@@ -197,6 +197,7 @@ function sendQuestion(QuestionPoolIndex, gameId) {
 */
 
 function getQuestionData(i){
+    /*
     // Gets the question
     var question = QuestionPool[i].question;
 
@@ -222,7 +223,10 @@ function getQuestionData(i){
         console.log(Questiondata[i])
         }
     return Questiondata;
-
+        */
+    var question = QuestionPool[i];
+    question.round = i;
+    return question;
 }
 
 /*
@@ -366,12 +370,14 @@ var wordPool = [
 ]
 */
 
+
 /**
  * Each element in the array provides data for a single round in the game.
  *
  * In each round is composed of 3 elements: a question (string), the right answer, and 4 wrong answers 
  *
  */
+ /*
 var QuestionPool = [
     {
         "question"  : [ "Quel est le temps de gestation d'un éléphant" ],
@@ -393,3 +399,15 @@ var QuestionPool = [
     
 
 ]
+*/
+var QuestionObject1 = {
+    id: 1,
+    questionType: 'multipleChoiceSingleAnswer',
+    scoringType: 'basicScoring',
+    speedScoring: false,
+    questionText: '3 + 2 =',
+    arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
+};
+
+var QuestionPool = [QuestionObject1]
+
