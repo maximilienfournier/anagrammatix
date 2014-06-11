@@ -505,6 +505,9 @@ jQuery(function($){
 			 	// Advance the round
 				App.currentRound += 1;
 				
+               // console check
+                console.log('calculate scores called');
+
 				// Calculates scores
 				App.Host.calculateScores();
 				
@@ -547,6 +550,10 @@ jQuery(function($){
                             break;
                         case 'openQuestionScoring':
                             scoreForThisRound = App.Host.openQuestionScoring(i);
+                            break;
+                        case 'distanceScoring':
+                            console.log('distanceScoring is called')
+                            scoreForThisRound = App.Host.distanceScoring(i);
                             break;
                         default:
                             console.log('Scoring type unknown!!!');
@@ -601,12 +608,50 @@ jQuery(function($){
                 var playerAnswer = App.Host.players[playerIndex].currentAnswer;
                 var scoreForThisRound = 0;
                 console.log('playerAnswer'+playerAnswer);
-                if (typeof playerAnswer != 'undefined'){
+                if (playerAnswer){
                     if (playerAnswer === App.Host.questionData.arrayOfAnswers[0]['value']){
                         scoreForThisRound = 5;
                     }
                     else{
                         scoreForThisRound = -3;
+                    }
+                }
+                return scoreForThisRound;
+             },
+
+            /**
+             * This scoring calculates the distance between the player's answer and the correct answer
+             * and grants points according to this distance.
+             */
+             distanceScoring : function (playerIndex){
+                var playerAnswer = App.Host.players[playerIndex].currentAnswer;
+                var correctAnswer = App.Host.questionData.arrayOfAnswers[0]['value'];
+                var correctAnswer = 25;
+                var scoreForThisRound = 0;
+                var range = 0.2;
+                var maxWonPoints = 5;
+                var minWonPoints = -3;
+                var distance = 0;
+                console.log('playerAnswer'+playerAnswer); 
+                // checks if the answer is not empty
+                if (playerAnswer){
+                    // checks if the answer is a number
+                    if (parseInt(playerAnswer) != NaN){
+                        if (playerAnswer <= correctAnswer*(1+range) && playerAnswer >= correctAnswer*(1-range)){
+                            // need to find an elegant way to calculate the norm, for now it's done in a basic way
+                            if (playerAnswer<correctAnswer){
+                                distance = correctAnswer - playerAnswer
+                            }
+                            else{ 
+                                distance = playerAnswer - correctAnswer
+                            }
+                            // linear function to calculate the score
+                            scoreForThisRound = maxWonPoints - distance*(maxWonPoints - minWonPoints)/(correctAnswer*range)
+                        }
+                        else{
+                            scoreForThisRound = -3;
+                        }
+                        console.log(scoreForThisRound); 
                     }
                 }
                 return scoreForThisRound;
