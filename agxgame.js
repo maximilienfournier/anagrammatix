@@ -406,6 +406,8 @@ var QuestionObject1 = {
     scoringType: 'basicScoring',
     numberOfSeconds : 15,
     speedScoring: true,
+    maxPoints : 50,
+    minPoints : -30,
     questionText: '3 + 2 =',
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
 };
@@ -416,6 +418,8 @@ var QuestionObject2 = {
     scoringType: 'basicScoring',
     numberOfSeconds : 10,
     speedScoring: true,
+    maxPoints : 50,
+    minPoints : -30,
     questionText: '3 + 1 =',
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: true},{value:'5', bool: false}]
 };
@@ -426,6 +430,8 @@ var QuestionObject3 = {
     scoringType: 'openQuestionScoring',
     numberOfSeconds : 10,
     speedScoring: false,
+    maxPoints : 50,
+    minPoints : -30,
     questionText: "What's the capital city of France",
     arrayOfAnswers: [{value:'Paris', bool: true}]
 };
@@ -436,6 +442,8 @@ var QuestionObject4 = {
     scoringType: 'distanceScoring',
     numberOfSeconds : 10,
     speedScoring: false,
+    maxPoints : 50,
+    minPoints : -30,
     questionText: "What's Max's age?",
     arrayOfAnswers: [{value:'25', bool: true}]
 };

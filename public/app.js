@@ -519,6 +519,7 @@ jQuery(function($){
 				
 				for (var i=0; i<App.Host.numPlayersInRoom; i++){
 					App.Host.players[i].hasAlreadyAnswered = false;
+                    delete App.Host.players[i].currentAnswer;
 				}
 				
 				// Stops the timeout
@@ -593,12 +594,12 @@ jQuery(function($){
                 }
                 else if (App.Host.questionData.arrayOfAnswers[index]['bool'] === true){
                     // Good answer
-                    scoreForThisRound = 5;
+                    scoreForThisRound = App.Host.questionData.maxPoints;
                     
                 }
                 else{
                     // Wrong answer
-                    scoreForThisRound = -3;
+                    scoreForThisRound = App.Host.questionData.minPoints;
                 }
                 return scoreForThisRound;
 			 		
@@ -607,13 +608,14 @@ jQuery(function($){
              openQuestionScoring : function(playerIndex){
                 var playerAnswer = App.Host.players[playerIndex].currentAnswer;
                 var scoreForThisRound = 0;
-                console.log('playerAnswer'+playerAnswer);
-                if (playerAnswer){
+                console.log('playerAnswer '+playerAnswer);
+                
+                if (typeof(playerAnswer) != 'undefined'){
                     if (playerAnswer === App.Host.questionData.arrayOfAnswers[0]['value']){
-                        scoreForThisRound = 5;
+                        scoreForThisRound = App.Host.questionData.maxPoints;
                     }
                     else{
-                        scoreForThisRound = -3;
+                        scoreForThisRound = App.Host.questionData.minPoints;
                     }
                 }
                 return scoreForThisRound;
@@ -626,33 +628,26 @@ jQuery(function($){
              distanceScoring : function (playerIndex){
                 var playerAnswer = App.Host.players[playerIndex].currentAnswer;
                 var correctAnswer = App.Host.questionData.arrayOfAnswers[0]['value'];
-                var correctAnswer = 25;
                 var scoreForThisRound = 0;
                 var range = 0.2;
-                var maxWonPoints = 5;
-                var minWonPoints = -3;
-                var distance = 0;
-                console.log('playerAnswer'+playerAnswer); 
-                // checks if the answer is not empty
-                if (playerAnswer){
-                    // checks if the answer is a number
-                    if (parseInt(playerAnswer) != NaN){
-                        if (playerAnswer <= correctAnswer*(1+range) && playerAnswer >= correctAnswer*(1-range)){
-                            // need to find an elegant way to calculate the norm, for now it's done in a basic way
-                            if (playerAnswer<correctAnswer){
-                                distance = correctAnswer - playerAnswer
-                            }
-                            else{ 
-                                distance = playerAnswer - correctAnswer
-                            }
-                            // linear function to calculate the score
-                            scoreForThisRound = maxWonPoints - distance*(maxWonPoints - minWonPoints)/(correctAnswer*range)
-                        }
-                        else{
-                            scoreForThisRound = -3;
-                        }
-                        console.log(scoreForThisRound); 
+                var maxPoints = App.Host.questionData.maxPoints;
+                var minPoints = App.Host.questionData.minPoints;
+                console.log('playerAnswer '+playerAnswer); 
+                // checks if the answer is not empty and is a number
+                if ((typeof(playerAnswer) != 'undefined') && (parseInt(playerAnswer) != NaN)){
+                    if (playerAnswer <= correctAnswer*(1+range) && playerAnswer >= correctAnswer*(1-range)){
+                        // need to find an elegant way to calculate the norm, for now it's done in a basic way
+                        var distance = Math.abs(correctAnswer - playerAnswer);
+                        
+                        // linear function to calculate the score
+                        scoreForThisRound = maxPoints - distance*(maxPoints - minPoints)/(correctAnswer*range)
                     }
+                    else{
+                        scoreForThisRound = minPoints;
+                    }
+                    scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
+                    console.log(scoreForThisRound); 
+                    
                 }
                 return scoreForThisRound;
              },
@@ -906,27 +901,6 @@ jQuery(function($){
                 // Insert the list onto the screen.
                 $('#gameArea').html($list);
             },
-
-
-            /*
-            newWord : function(data) {
-                // Create an unordered list element
-                var $list = $('<ul/>').attr('id','ulAnswers');
-
-                // Insert a list item for each word in the word list
-                // received from the server.
-                $.each(data.list, function(){
-                    $list                                //  <ul> </ul>
-                        .append( $('<li/>')              //  <ul> <li> </li> </ul>
-                            .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                                .addClass('btnAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .val(this)               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
-                                .html(this)              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
-                            )
-                        )
-                });
-            */
 
             /**
              * Show the "Game Over" screen.
