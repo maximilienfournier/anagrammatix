@@ -448,5 +448,17 @@ var QuestionObject4 = {
     arrayOfAnswers: [{value:'25', bool: true}]
 };
 
-var QuestionPool = [QuestionObject4, QuestionObject3, QuestionObject2, QuestionObject1]
+var QuestionObject5 = {
+    id: 1,
+    questionType: 'priorityQuestion',
+    scoringType: 'distanceArrayScoring',
+    numberOfSeconds : 30,
+    speedScoring: false,
+    maxPoints : 50,
+    minPoints : -30,
+    questionText: "Sort those words in the alphabetical order.",
+    arrayOfAnswers: [{value:'Attention', bool: true}, {value:'Blue', bool: true}, {value:'Color', bool: true}, {value:'Diamond', bool: true}, {value:'Echo', bool: true}]
+};
+
+var QuestionPool = [QuestionObject5, QuestionObject4, QuestionObject3, QuestionObject2, QuestionObject1]
 

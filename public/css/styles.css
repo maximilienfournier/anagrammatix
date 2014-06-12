@@ -232,6 +232,34 @@ html, body {
     font-size: 3em;
     color: #AE37B2;
 }
+.btnPriorityAnswer{
+    width: 70%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+}
+.btnPriorityAnswerNumber{
+    width: 30%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+}
+.btnPriorityAnswerSubmit{
+    width: 50%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+}
+.btnPriorityAnswerReset{
+    width: 50%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+}
 
 
 /* ******************************

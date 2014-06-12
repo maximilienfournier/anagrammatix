@@ -197,6 +197,12 @@ jQuery(function($){
             App.$doc.on('click', '.btnAnswer',App.Player.onPlayerAnswerClick);
             App.$doc.on('click', '#btnPlayerRestart', App.Player.onPlayerRestart);
             App.$doc.on('click', '.btnOpenAnswer', App.Player.onPlayerAnswerClickOpenQuestion);
+            App.$doc.on('click', '.btnPriorityAnswer', App.Player.onPlayerClickPriorityAnswer);
+            App.$doc.on('click','.btnPriorityAnswerReset', App.Player.onPlayerClickPriorityReset);
+            App.$doc.on('click','.btnPriorityAnswerSubmit', App.Player.onPlayerClickPrioritySubmit);
+            
+            
+            
         },
 
         /* *************************************
@@ -556,6 +562,10 @@ jQuery(function($){
                             console.log('distanceScoring is called')
                             scoreForThisRound = App.Host.distanceScoring(i);
                             break;
+                        case 'distanceArrayScoring':
+                            console.log('distanceArrayScoring');
+                            scoreForThisRound = App.Host.distanceArrayScoring(i);
+                            break;
                         default:
                             console.log('Scoring type unknown!!!');
                      }
@@ -652,6 +662,45 @@ jQuery(function($){
                 return scoreForThisRound;
              },
 
+             /**
+              * This scoring function calculates the distance between the array of answers of the player and the correct array of answers
+              */
+
+
+            distanceArrayScoring : function(playerIndex){
+                // Those two arrays represent the position of the words in the arrayOfAnswers.
+                var correctAnswer = [0,1,2,3,4];
+                var playerAnswer = [];
+
+                var playerAnswerText = App.Host.players[playerIndex].currentAnswer;
+                for (var i = 0; i < correctAnswer.length; i++) {
+                    var word = App.Host.questionData.arrayOfAnswers[i]['value'];
+                    playerAnswer[i] = playerAnswerText.indexOf(word);
+                }
+
+
+                var scoreForThisRound = 0;
+                var maxPoints = App.Host.questionData.maxPoints;
+                var minPoints = App.Host.questionData.minPoints;
+                var rev = playerAnswer.slice(0).reverse();
+                var distanceMax = App.distanceBetweenArrays(playerAnswer,rev);
+
+                var range = 0.5; // Percentage of distanceMax from which the score is set to minPoints
+                if((typeof(playerAnswer) != 'undefined') && (playerAnswer.indexOf(-1) === -1)){
+                    var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
+                    if(distance < range*distanceMax){
+                        scoreForThisRound = maxPoints - distance*(maxPoints-minPoints)/(distanceMax*range);
+                    }
+                    else{
+                        scoreForThisRound = minPoints;
+                    }
+                    scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
+                }
+                console.log(scoreForThisRound); 
+
+                return scoreForThisRound;
+            },
+
             /**
              * All 10 rounds have played out. End the game.
              * @param data
@@ -714,6 +763,12 @@ jQuery(function($){
              * Player's answer for this round
              */
             answer: '',
+
+            /**
+             * Current ranking for the player in priority ranking questions
+             */
+
+            priorityAnswerCurrentRanking: 0,
 			 
             /**
              * Click handler for the 'JOIN' button
@@ -830,6 +885,8 @@ jQuery(function($){
             newQuestion : function(data) {
                 console.log('Player newQuestion called');
                 console.log(data.questionType);
+                App.Player.priorityAnswerCurrentRanking = 0;
+
                 // Switch to display the appropriate items on the player's screen
                 switch(data.questionType){
                     case 'multipleChoiceSingleAnswer':
@@ -840,6 +897,9 @@ jQuery(function($){
                         break;
                     case 'openQuestion':
                         App.Player.newQuestionOpenQuestion(data);
+                        break;
+                    case 'priorityQuestion':
+                        App.Player.newQuestionPriorityQuestion(data);
                         break;
                     default:
                         console.log("The question type is not known for the player's display");
@@ -900,6 +960,111 @@ jQuery(function($){
 
                 // Insert the list onto the screen.
                 $('#gameArea').html($list);
+            },
+
+            newQuestionPriorityQuestion : function(data){
+                var answersShuffled = App.shuffle(data.arrayOfAnswers);
+                var $list = $('<ul/>').attr('id','ulAnswers');
+
+                $.each(data.arrayOfAnswers, function(){
+                    $list                                //  <ul> </ul>
+                        .append( $('<li/>')              //  <ul> <li> </li> </ul>
+                            .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
+                                .addClass('btnPriorityAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                                .val(this['value'])               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                                .html(this['value'])              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
+                            )
+                            .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
+                                .addClass('btnPriorityAnswerNumber')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                                //.val(this['value'])               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                                .attr('id',this['value'])
+                            )
+                        )
+                });
+                
+                $list
+                    .append($('<li/>')
+                        .append($('<button/>')
+                            .addClass('btnPriorityAnswerSubmit')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .val('Submit')               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                            .html('Submit')
+                        )
+                        .append($('<button/>')
+                            .addClass('btnPriorityAnswerReset')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
+                            .val('Reset')               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                            .html('Reset')
+                        )
+                    )
+
+                
+
+                // Insert the list onto the screen.
+                $('#gameArea').html($list);
+
+            },
+
+            /** 
+             * Function that modifies the display of the ranking when a priority button is clicked
+            */
+            onPlayerClickPriorityAnswer : function(){
+                console.log('Button clicked.')
+                var $btn = $(this);      // the tapped button
+                var word = $btn.val();
+
+                if (App.Player.priorityAnswerCurrentRanking < 5){
+                    App.Player.priorityAnswerCurrentRanking += 1;
+                    document.getElementById(word).innerHTML = App.Player.priorityAnswerCurrentRanking;
+                }
+
+            },
+
+            /** 
+             * Function that reset the priority ranking answers when reset button is clicked
+             */
+
+            onPlayerClickPriorityReset : function(){
+                App.Player.priorityAnswerCurrentRanking = 0;
+                var elems = document.getElementsByTagName('*'), i;
+                for (i in elems) {
+                    if((' ' + elems[i].className + ' ').indexOf(' ' + 'btnPriorityAnswerNumber' + ' ')
+                            > -1) {
+                        elems[i].innerHTML = '';
+                    }
+                }
+            },
+
+            /** 
+             * Function that submit the priority ranking answers when submit button is clicked
+             */
+
+            onPlayerClickPrioritySubmit : function(){
+                App.Player.priorityAnswerCurrentRanking = 0;
+                console.log('Submit button clicked');
+                
+                var answer = [];
+                var elems = document.getElementsByTagName('*'), i;
+                for (i in elems) {
+                    if((' ' + elems[i].className + ' ').indexOf(' ' + 'btnPriorityAnswerNumber' + ' ')
+                            > -1) {
+                        answer[parseInt(elems[i].innerHTML)-1] = elems[i].id;
+                    }
+                }
+
+                // Send the player info and tapped word to the server so
+                // the host can check the answer.
+                var data = {
+                    gameId: App.gameId,
+                    playerId: App.mySocketId,
+                    answer: answer,
+                    round: App.currentRound,
+                    timeOfAnswer: new Date().getTime()
+                }
+                console.log(answer);
+                IO.socket.emit('playerAnswer',data);
             },
 
             /**
@@ -965,6 +1130,26 @@ jQuery(function($){
                 }
             }
 			return timer
+        },
+
+        /**
+         * Function that shuffles an array
+         */
+        shuffle: function(o){
+            for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+            return o;
+        },
+
+        /**
+         * Function that calculates the distance between two arrays
+         */
+
+        distanceBetweenArrays : function(a,b){
+            var distance = 0;
+            for(var i=0; i<a.length; i++){
+                distance += Math.pow(a[i]-b[i],2);
+            }
+            return Math.sqrt(distance);
         },
 
         /**
