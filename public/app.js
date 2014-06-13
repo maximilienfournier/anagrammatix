@@ -127,6 +127,7 @@ jQuery(function($){
 
     };
 
+
     var App = {
 
         /**
@@ -255,25 +256,33 @@ jQuery(function($){
 			 /**
 			  * Variable containing the countdown for each round
 			  */
-			 countDownVariable : '',
+			countDownVariable : '',
 
              /**
               * Variable containing question data
               */
 
-             questionData : '',
+            questionData : '',
 
              /**
               * Time when the question has been displayed
               */
 
-             timeBeginningQuestion : 0,
+            timeBeginningQuestion : 0,
 
              /**
               * Number of seconds for this round
               */
 
-             secondsForThisRound : 0,
+            secondsForThisRound : 0,
+
+             /**
+              * Minimal and maximal amount of points a player can get 
+              * For answering a question durinng a given round
+              */
+
+            minPoints : 0,
+            maxPoints : 0,
 
             /**
              * Handler for the "Start" button on the Title Screen.
@@ -543,6 +552,30 @@ jQuery(function($){
 			 	App.Host.timeOut = setTimeout(App.Host.endThisRound, time);
 			 },
 			 
+            /**
+             * Determine max & min points that should be used for scoring
+             * according to the level of the question
+             */
+
+            calculateMinMaxPoints : function(){
+                switch (App.Host.questionData.level){
+                    case 'easy':
+                        App.Host.minPoints = -2.5;
+                        App.Host.maxPoints = 5;
+                        break;
+                    case 'medium':
+                        App.Host.minPoints = -5;
+                        App.Host.maxPoints = 10;
+                        break;
+                    case 'hard':
+                        App.Host.minPoints = -10;
+                        App.Host.maxPoints = 20;
+                        break;
+                    default:
+                        console.log('Question level unknown!!!');
+                }
+            }, 
+
              /**
              * Calculate the scores after the end of the round*
              */
@@ -551,6 +584,9 @@ jQuery(function($){
                  for (var i=0; i<App.Host.numPlayersInRoom; i++){
                     var $pScore = $('#' + App.Host.players[i].mySocketId);
                     var scoreForThisRound = 0;
+                    App.Host.calculateMinMaxPoints();
+                    console.log('App.Host.maxPoints');
+                    console.log(App.Host.maxPoints);
                     switch (App.Host.questionData.scoringType){
                         case 'basicScoring':
                             scoreForThisRound = App.Host.basicScoring(i);
@@ -604,12 +640,12 @@ jQuery(function($){
                 }
                 else if (App.Host.questionData.arrayOfAnswers[index]['bool'] === true){
                     // Good answer
-                    scoreForThisRound = App.Host.questionData.maxPoints;
+                    scoreForThisRound = App.Host.maxPoints;
                     
                 }
                 else{
                     // Wrong answer
-                    scoreForThisRound = App.Host.questionData.minPoints;
+                    scoreForThisRound = App.Host.minPoints;
                 }
                 return scoreForThisRound;
 			 		
@@ -622,10 +658,10 @@ jQuery(function($){
                 
                 if (typeof(playerAnswer) != 'undefined'){
                     if (playerAnswer === App.Host.questionData.arrayOfAnswers[0]['value']){
-                        scoreForThisRound = App.Host.questionData.maxPoints;
+                        scoreForThisRound = App.Host.maxPoints;
                     }
                     else{
-                        scoreForThisRound = App.Host.questionData.minPoints;
+                        scoreForThisRound = App.Host.minPoints;
                     }
                 }
                 return scoreForThisRound;
@@ -640,8 +676,6 @@ jQuery(function($){
                 var correctAnswer = App.Host.questionData.arrayOfAnswers[0]['value'];
                 var scoreForThisRound = 0;
                 var range = 0.2;
-                var maxPoints = App.Host.questionData.maxPoints;
-                var minPoints = App.Host.questionData.minPoints;
                 console.log('playerAnswer '+playerAnswer); 
                 // checks if the answer is not empty and is a number
                 if ((typeof(playerAnswer) != 'undefined') && (parseInt(playerAnswer) != NaN)){
@@ -650,10 +684,10 @@ jQuery(function($){
                         var distance = Math.abs(correctAnswer - playerAnswer);
                         
                         // linear function to calculate the score
-                        scoreForThisRound = maxPoints - distance*(maxPoints - minPoints)/(correctAnswer*range)
+                        scoreForThisRound = App.Host.maxPoints - distance*(App.Host.maxPoints - App.Host.minPoints)/(correctAnswer*range)
                     }
                     else{
-                        scoreForThisRound = minPoints;
+                        scoreForThisRound = App.Host.minPoints;
                     }
                     scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
                     console.log(scoreForThisRound); 
@@ -678,10 +712,7 @@ jQuery(function($){
                     playerAnswer[i] = playerAnswerText.indexOf(word);
                 }
 
-
                 var scoreForThisRound = 0;
-                var maxPoints = App.Host.questionData.maxPoints;
-                var minPoints = App.Host.questionData.minPoints;
                 var rev = playerAnswer.slice(0).reverse();
                 var distanceMax = App.distanceBetweenArrays(playerAnswer,rev);
 
@@ -689,10 +720,10 @@ jQuery(function($){
                 if((typeof(playerAnswer) != 'undefined') && (playerAnswer.indexOf(-1) === -1)){
                     var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
                     if(distance < range*distanceMax){
-                        scoreForThisRound = maxPoints - distance*(maxPoints-minPoints)/(distanceMax*range);
+                        scoreForThisRound = App.Host.maxPoints - distance*(App.Host.maxPoints-App.Host.minPoints)/(distanceMax*range);
                     }
                     else{
-                        scoreForThisRound = minPoints;
+                        scoreForThisRound = App.Host.minPoints;
                     }
                     scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
                 }
@@ -950,10 +981,10 @@ jQuery(function($){
                     )
                     .append( $('<li/>')              //  <ul> <li> </li> </ul>
                         .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                            .addClass('btnOpenAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .val('submit')               //  <ul> <li> <button class='btnAnswer' value='submit'> </button> </li> </ul>
-                            .html('Submit')              //  <ul> <li> <button class='btnAnswer' value='submit'>Submit</button> </li> </ul>
+                            .addClass('btnOpenAnswer')   //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
+                            .val('submit')               //  <ul> <li> <button class='btnOpenAnswer' value='submit'> </button> </li> </ul>
+                            .html('Submit')              //  <ul> <li> <button class='btnOpenAnswer' value='submit'>Submit</button> </li> </ul>
                         )
                     )
             
@@ -970,15 +1001,15 @@ jQuery(function($){
                     $list                                //  <ul> </ul>
                         .append( $('<li/>')              //  <ul> <li> </li> </ul>
                             .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                                .addClass('btnPriorityAnswer')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .val(this['value'])               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
-                                .html(this['value'])              //  <ul> <li> <button class='btnAnswer' value='word'>word</button> </li> </ul>
+                                .addClass('btnPriorityAnswer')   //  <ul> <li> <button class='btnPriorityAnswerNumber'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerNumber'> </button> </li> </ul>
+                                .val(this['value'])               //  <ul> <li> <button class='btnPriorityAnswerNumber' value='word'> </button> </li> </ul>
+                                .html(this['value'])              //  <ul> <li> <button class='btnPriorityAnswerNumber' value='word'>word</button> </li> </ul>
                             )
                             .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                                .addClass('btnPriorityAnswerNumber')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                                //.val(this['value'])               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                                .addClass('btnPriorityAnswerNumber')   //  <ul> <li> <button class='btnPriorityAnswerNumber'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerNumber'> </button> </li> </ul>
+                                //.val(this['value'])               //  <ul> <li> <button class='btnPriorityAnswerNumber' value='word'> </button> </li> </ul>
                                 .attr('id',this['value'])
                             )
                         )
@@ -987,15 +1018,15 @@ jQuery(function($){
                 $list
                     .append($('<li/>')
                         .append($('<button/>')
-                            .addClass('btnPriorityAnswerSubmit')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .val('Submit')               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                            .addClass('btnPriorityAnswerSubmit')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                            .val('Submit')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
                             .html('Submit')
                         )
                         .append($('<button/>')
-                            .addClass('btnPriorityAnswerReset')   //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnAnswer'> </button> </li> </ul>
-                            .val('Reset')               //  <ul> <li> <button class='btnAnswer' value='word'> </button> </li> </ul>
+                            .addClass('btnPriorityAnswerReset')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                            .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                            .val('Reset')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
                             .html('Reset')
                         )
                     )
