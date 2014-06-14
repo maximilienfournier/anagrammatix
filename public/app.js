@@ -720,7 +720,11 @@ jQuery(function($){
 
 
                 var range = 0.5; // Percentage of distanceMax from which the score is set to minPoints
-                if((typeof(playerAnswer) != 'undefined') && (playerAnswer.indexOf(-1) === -1)){
+                if((typeof(playerAnswerText) != 'undefined') && (playerAnswer.indexOf(-1) === -1)){
+                    for (var i = 0; i < correctAnswer.length; i++) {
+                        var word = App.Host.questionData.arrayOfAnswers[i]['value'];
+                        playerAnswer[i] = playerAnswerText.indexOf(word);
+                    }
                     var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
                     if(distance < range*distanceMax){
                         scoreForThisRound = App.Host.maxPoints - distance*(App.Host.maxPoints-App.Host.minPoints)/(distanceMax*range);
