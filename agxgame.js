@@ -1,9 +1,14 @@
 var io;
 var gameSocket;
+var mysql = require('mysql');
+var db = mysql.createConnection({
+  host     : 'sql5.freemysqlhosting.net',
+  user     : 'sql543533',
+  password : 'dD2!mQ5*',
+  database : 'sql543533',
+});
 
-/*test fork Max + Rom
-    And Max again + Rom + RomFork
-*/
+
 /**
  * This function is called by index.js to initialize a new game instance.
  *
@@ -37,6 +42,21 @@ exports.initGame = function(sio, socket){
  * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
  */
 function hostCreateNewGame() {
+    // Check connection to MySQL
+    db.connect(function(err){
+        if(err){
+            console.log('Error connecting to MySQL server: ' + err.code + '.');
+            process.exit(1);
+        }else{
+            console.log('Connected to MySQL server.');
+        }
+    });
+
+    // Run a test query on MySQL to make sure it works!
+    db.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
+        console.log('This is a test query from MySQL:'+rows[0].question_text)
+    });
+
     // Create a unique Socket.IO Room
     var thisGameId = ( Math.random() * 100000 ) | 0;
     // Return the Room ID (gameId) and the socket ID (mySocketId) to the browser client
@@ -406,8 +426,7 @@ var QuestionObject1 = {
     scoringType: 'basicScoring',
     numberOfSeconds : 15,
     speedScoring: true,
-    maxPoints : 50,
-    minPoints : -30,
+    level: 'medium',
     questionText: '3 + 2 =',
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: false},{value:'5', bool: true}]
 };
@@ -418,8 +437,7 @@ var QuestionObject2 = {
     scoringType: 'basicScoring',
     numberOfSeconds : 10,
     speedScoring: true,
-    maxPoints : 50,
-    minPoints : -30,
+    level: 'medium',
     questionText: '3 + 1 =',
     arrayOfAnswers: [{value:'1', bool: false},{value:'2', bool: false},{value:'3', bool: false},{value:'4', bool: true},{value:'5', bool: false}]
 };
@@ -430,8 +448,7 @@ var QuestionObject3 = {
     scoringType: 'openQuestionScoring',
     numberOfSeconds : 10,
     speedScoring: false,
-    maxPoints : 50,
-    minPoints : -30,
+    level: 'easy',
     questionText: "What's the capital city of France",
     arrayOfAnswers: [{value:'Paris', bool: true}]
 };
@@ -442,8 +459,7 @@ var QuestionObject4 = {
     scoringType: 'distanceScoring',
     numberOfSeconds : 10,
     speedScoring: false,
-    maxPoints : 50,
-    minPoints : -30,
+    level: 'hard',
     questionText: "What's Max's age?",
     arrayOfAnswers: [{value:'25', bool: true}]
 };
@@ -454,8 +470,7 @@ var QuestionObject5 = {
     scoringType: 'distanceArrayScoring',
     numberOfSeconds : 30,
     speedScoring: false,
-    maxPoints : 50,
-    minPoints : -30,
+    level: 'easy',
     questionText: "Sort those words in the alphabetical order.",
     arrayOfAnswers: [{value:'Attention', bool: true}, {value:'Blue', bool: true}, {value:'Color', bool: true}, {value:'Diamond', bool: true}, {value:'Echo', bool: true}]
 };
