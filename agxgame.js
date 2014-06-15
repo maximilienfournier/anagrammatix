@@ -1,13 +1,6 @@
 var io;
 var gameSocket;
 var mysql = require('mysql');
-var db = mysql.createConnection({
-  host     : 'sql5.freemysqlhosting.net',
-  user     : 'sql543533',
-  password : 'dD2!mQ5*',
-  database : 'sql543533',
-});
-
 
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -42,8 +35,15 @@ exports.initGame = function(sio, socket){
  * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
  */
 function hostCreateNewGame() {
+    var connection = mysql.createConnection({
+      host     : 'sql5.freemysqlhosting.net',
+      user     : 'sql543533',
+      password : 'dD2!mQ5*',
+      database : 'sql543533',
+    });
+    
     // Check connection to MySQL
-    db.connect(function(err){
+    connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
             process.exit(1);
@@ -53,8 +53,12 @@ function hostCreateNewGame() {
     });
 
     // Run a test query on MySQL to make sure it works!
-    db.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
+    connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
         console.log('This is a test query from MySQL:'+rows[0].question_text)
+    });
+
+    connection.end(function(err) {
+        console.log('The SQL connection has been terminated')
     });
 
     // Create a unique Socket.IO Room
