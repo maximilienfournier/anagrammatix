@@ -26,6 +26,8 @@ jQuery(function($){
             IO.socket.on('connected', IO.onConnected );
             IO.socket.on('newGameCreated', IO.onNewGameCreated );
             IO.socket.on('playerJoinedRoom', IO.playerJoinedRoom );
+            IO.socket.on('playerAskedToJoinGame', IO.playerAskedToJoinGame );
+            IO.socket.on('playerDidNotJoinRoom', IO.playerDidNotJoinRoom );
             IO.socket.on('beginNewGame', IO.beginNewGame );
             // IO.socket.on('newWordData', IO.onNewWordData);
             IO.socket.on('newQuestionData', IO.onNewQuestionData);
@@ -56,13 +58,44 @@ jQuery(function($){
          * @param data {{playerName: string, gameId: int, mySocketId: int}}
          */
         playerJoinedRoom : function(data) {
-            // When a player joins a room, do the updateWaitingScreen funciton.
+            // When a player joins a room, do the updateWaitingScreen function.
             // There are two versions of this function: one for the 'host' and
             // another for the 'player'.
             //
             // So on the 'host' browser window, the App.Host.updateWiatingScreen function is called.
             // And on the player's browser, App.Player.updateWaitingScreen is called.
+            console.log(App.myRole);
+            console.log('Called playerJoinedRoom');
+
             App[App.myRole].updateWaitingScreen(data);
+        },
+
+        /*
+         * Function called to verify if the username is already used by another player
+         */
+
+        playerAskedToJoinGame : function(data){
+            if (App.myRole === 'Host'){
+                var isNameTaken = App[App.myRole].isNameTaken(data.playerName);
+                console.log('Is name taken :' + isNameTaken);
+                if (isNameTaken){
+                    IO.socket.emit('playerCannotJoinGame', data);
+                }
+                else{
+                    IO.socket.emit('playerJoinGame', data);
+                }
+            }
+        },
+
+        /*
+         * Called when a player tried to join the room but the username was already taken.
+         */
+
+        playerDidNotJoinRoom : function(data){
+            if (App.myRole === 'Player'){
+                console.log('playerDidNotJoinRoom');
+                App[App.myRole].notifyPlayerNameAlreadyTaken(data);
+            }
         },
 
         /**
@@ -347,6 +380,8 @@ jQuery(function($){
                 // Increment the number of players in the room
                 App.Host.numPlayersInRoom += 1;
 
+                console.log('numPlayersInRoom in Host '+App.Host.numPlayersInRoom);
+
                 // If all players have joined, start the game!
                 if (App.Host.numPlayersInRoom ===  parseInt(App.Host.numberOfPlayers)) {
                     console.log('Room is full. Almost ready!');
@@ -361,6 +396,23 @@ jQuery(function($){
                         App.Host.players[i].answer = '';
                     }
                 }
+            },
+
+            /**
+             * Verifies is the name is already used by another player
+             */
+            isNameTaken : function(name){
+                var result = false;
+                console.log(name);
+                console.log(App.Host.numPlayersInRoom);
+                for(var i=0; i<App.Host.numPlayersInRoom; i++){
+                    console.log(App.Host.players[i].playerName);
+                    console.log((App.Host.players[i].playerName === name));
+                    result = result || (App.Host.players[i].playerName === name);
+                    
+                }
+                console.log('End of isNameTaken '+result);
+                return result;
             },
 
             /**
@@ -707,11 +759,13 @@ jQuery(function($){
                 var playerAnswer = [];
 
                 var playerAnswerText = App.Host.players[playerIndex].currentAnswer;
-                for (var i = 0; i < correctAnswer.length; i++) {
-                    var word = App.Host.questionData.arrayOfAnswers[i]['value'];
-                    playerAnswer[i] = playerAnswerText.indexOf(word);
+                if(typeof(playerAnswerText) != 'undefined'){
+                    for (var i = 0; i < correctAnswer.length; i++) {
+                        var word = App.Host.questionData.arrayOfAnswers[i]['value'];
+                        playerAnswer[i] = playerAnswerText.indexOf(word);
+                    }
                 }
-
+                
                 var scoreForThisRound = 0;
                 var maxPoints = App.Host.questionData.maxPoints;
                 var minPoints = App.Host.questionData.minPoints;
@@ -824,19 +878,35 @@ jQuery(function($){
              */
             onPlayerStartClick: function() {
                 // console.log('Player clicked "Start"');
-
                 // collect data to send to the server
                 var data = {
                     gameId : +($('#inputGameId').val()),
                     playerName : $('#inputPlayerName').val() || 'anon'
                 };
-
+                
                 // Send the gameId and playerName to the server
-                IO.socket.emit('playerJoinGame', data);
-
+                //IO.socket.emit('playerJoinGame', data);
+                IO.socket.emit('playerWantToJoinGame', data);
+                
                 // Set the appropriate properties for the current player.
                 App.myRole = 'Player';
                 App.Player.myName = data.playerName;
+                
+            },
+
+            /**
+             *
+             */
+            notifyPlayerNameAlreadyTaken: function(data){
+                console.log('notifyPlayerNameAlreadyTaken');
+                console.log(IO.socket.socket);
+                console.log(IO.socket.socket.sessionid);
+                if(IO.socket.socket.sessionid === data.mySocketId){
+                    console.log('notifyPlayerNameAlreadyTaken in if test.');
+                    $('#playerWaitingMessage')
+                        .append('<p/>')
+                        .text('Username already used, please choose another one.');
+                }
             },
 
             /**
@@ -900,9 +970,12 @@ jQuery(function($){
                     App.myRole = 'Player';
                     App.gameId = data.gameId;
 
+                    console.log('updateWaitingScreen');
+
                     $('#playerWaitingMessage')
                         .append('<p/>')
                         .text('Joined Game ' + data.gameId + '. Please wait for game to begin.');
+                    document.getElementById("btnStart").disabled = true;
                 }
             },
 
