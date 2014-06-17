@@ -1,6 +1,7 @@
 var io;
 var gameSocket;
 var mysql = require('mysql');
+var QuestionPoolDB = [];
 
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -71,8 +72,66 @@ function hostCreateNewGame() {
 
     // Join the Room and wait for the players
     this.join(thisGameId.toString());
+
+    createSetOfQuestionFromDB();
 };
 
+/* 
+ * Creates a set of question from DB
+ */
+
+function createSetOfQuestionFromDB(){
+    var connection = mysql.createConnection({
+      host     : 'sql5.freemysqlhosting.net',
+      user     : 'sql543533',
+      password : 'dD2!mQ5*',
+      database : 'sql543533',
+    });
+
+    connection.connect(function(err){
+        if(err){
+            console.log('Error connecting to MySQL server: ' + err.code + '.');
+            process.exit(1);
+        }else{
+            console.log('Connected to MySQL server.');
+        }
+    });
+
+    // Run a test query on MySQL to make sure it works!
+    connection.query('SELECT * FROM questions', function(err, rows, fields){
+        for(var i = 0; i<rows.length;i++){
+            var question = createQuestionObject(rows[i]);
+            QuestionPoolDB[i] = question;
+        }
+    });
+
+    connection.end(function(err) {
+        console.log('The SQL connection has been terminated')
+    });
+};
+
+/*
+ * Creates a question object from a row of DB
+ */
+
+ function createQuestionObject(row){
+    var QuestionObject = {
+        id: row.question_id,
+        questionType: row.question_type,
+        scoringType: row.scoring_type,
+        numberOfSeconds : row.number_of_seconds,
+        speedScoring: row.speed_scoring,
+        level: row.difficulty,
+        questionText: row.question_text,
+        arrayOfAnswers: [{value: row.answer1_text, bool: (row.answer1_correct==1)}, 
+                         {value: row.answer2_text, bool: (row.answer2_correct==1)}, 
+                         {value: row.answer3_text, bool: (row.answer3_correct==1)}, 
+                         {value: row.answer4_text, bool: (row.answer4_correct==1)}, 
+                         {value: row.answer5_text, bool: (row.answer5_correct==1)}]
+    };
+    console.log(QuestionObject.arrayOfAnswers);
+    return QuestionObject;
+ };
 /*
  * Two players have joined. Alert the host!
  * @param gameId The game ID / room ID
@@ -104,7 +163,8 @@ function hostStartGame(gameId) {
  */
 function hostNextRound(data) {
 	console.log('Asked for a new round');
-    if(data.round < QuestionPool.length ){
+    // To be changed if using questionPoolDB or questionPool
+    if(data.round < QuestionPoolDB.length ){
     	console.log('Not at the end of the pool, creating a new set of words.')
         // Send a new set of questions back to the host and players.
         sendQuestion(data.round, data.gameId);
@@ -254,7 +314,10 @@ function sendQuestion(QuestionPoolIndex, gameId) {
 */
 
 function getQuestionData(i){
-    var question = QuestionPool[i];
+    // Using the questions in code
+    //var question = QuestionPool[i];
+    // Using the question pool from DB
+    var question = QuestionPoolDB[i];
     question.round = i;
     return question;
 }

@@ -569,6 +569,7 @@ jQuery(function($){
 					// Note which player has just answered and saves the answer
 					for (var i=0; i<App.Host.numPlayersInRoom; i++){
 						if (App.Host.players[i].mySocketId === data.playerId){
+                            console.log('Player ' + data.playerId + ' answered ' + data.answer);
 							App.Host.players[i].hasAlreadyAnswered = true;
                             App.Host.players[i].timeOfAnswer = data.timeOfAnswer;
                             /*
@@ -671,8 +672,6 @@ jQuery(function($){
                     var $pScore = $('#' + App.Host.players[i].mySocketId);
                     var scoreForThisRound = 0;
                     App.Host.calculateMinMaxPoints();
-                    console.log('App.Host.maxPoints');
-                    console.log(App.Host.maxPoints);
                     switch (App.Host.questionData.scoringType){
                         case 'basicScoring':
                             scoreForThisRound = App.Host.basicScoring(i);
@@ -701,6 +700,7 @@ jQuery(function($){
                      }
                      
                      $pScore.text( +$pScore.text() +  scoreForThisRound);
+                     console.log('Points for player ' + App.Host.players[i].mySocketId + ' for this round: ' + scoreForThisRound);
                      App.Host.players[i].answer = '';
                      App.Host.players[i].timeOfAnswer = 0;
                  }
