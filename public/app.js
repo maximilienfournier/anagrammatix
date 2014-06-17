@@ -759,6 +759,8 @@ jQuery(function($){
              */
              distanceScoring : function (playerIndex){
                 var playerAnswer = App.Host.players[playerIndex].currentAnswer;
+                // Replace commas with dots
+                playerAnswer = parseFloat(playerAnswer.replace(/,/g, '.'));
                 var correctAnswer = App.Host.questionData.arrayOfAnswers[0]['value'];
                 var scoreForThisRound = 0;
                 var range = 0.2;
