@@ -115,8 +115,14 @@ jQuery(function($){
             // Update the current round
             App.currentRound = data.round;
             console.log(data);
-            // Change the word for the Host and Player
-            App[App.myRole].newQuestion(data);
+            if (data.questionType === 'pausingObject'){
+                App[App.myRole].pausingGame(data);
+            }
+            else{
+                // Change the word for the Host and Player
+                App[App.myRole].newQuestion(data);
+            }
+            
         },
 
         /*
@@ -234,6 +240,7 @@ jQuery(function($){
             App.$doc.on('click', '.btnPriorityAnswer', App.Player.onPlayerClickPriorityAnswer);
             App.$doc.on('click','.btnPriorityAnswerReset', App.Player.onPlayerClickPriorityReset);
             App.$doc.on('click','.btnPriorityAnswerSubmit', App.Player.onPlayerClickPrioritySubmit);
+            App.$doc.on('click','.btnContinueGame', App.Host.endOfPause);
             
             
             
@@ -501,24 +508,51 @@ jQuery(function($){
                 //App.Host.countDownForRound(10000);
             },
 
-
             /**
-             * Show the word for the current round on screen.
-             * @param data{{round: *, word: *, answer: *, list: Array}}
-             
-            newWord : function(data) {
-                // Insert the new word into the DOM
-                $('#hostWord').text(data.word);
-                App.doTextFit('#hostWord');
+             * Function called to pause the game between sets of questions
+             */
 
-                // Update the data for the current round
-                App.Host.currentCorrectAnswer = data.answer;
-                App.Host.currentRound = data.round;
+             pausingGame : function(data){
+                console.log('pausingGame');
+                $('#hostWord').text(data.text);
+                document.getElementById('countDownPerRound').innerHTML='';
+                App.doTextFit('#hostWord');
                 
-                App.Host.roundCountDown();
-                //App.Host.countDownForRound(10000);
-            },
-            */
+                var $par = $('<p/>').attr('id','pausingP');
+
+                $par.append($('<button/>')   
+                            .addClass('btn')        
+                            .addClass('btnContinueGame')
+                            .attr('id','btnContinueGame')
+                            .val('Continue the game')          
+                            .html('Continue the game')
+                    )
+                    
+                // Insert the list onto the screen.
+                $('#pausingArea').html($par);
+
+                App.Host.questionData = data;
+                App.Host.currentRound = data.round;
+             },
+
+             /**
+              * Function that is called to end the pause.
+              */
+             endOfPause : function(){
+                console.log('endOfPause');
+                // Deletes the 'Continue' button displayed during the pause
+                $('#pausingArea').html('');
+                App.currentRound += 1;
+
+                var data = {
+                    gameId : App.gameId,
+                    round : App.currentRound
+                }
+
+                // Notify the server to start the next round.
+                IO.socket.emit('hostNextRound',data);
+
+             },
 
             /**
              * Check the answer clicked by a player.
@@ -989,6 +1023,26 @@ jQuery(function($){
                     .html('<div class="gameOver">Get Ready!</div>');
             },
 
+            /*
+             * Function called to pause the game.
+             */
+
+            pausingGame : function(data){
+                console.log('pausingGame');
+                var $list = $('<ul/>').attr('id','ulAnswers');
+                
+
+                $list                                
+                    .append($('<li/>') 
+                        .append($('<p/>')
+                            .html('Pausing game.')
+                        )
+
+                    )
+
+                $('#gameArea').html($list);
+            },
+
             /**
              * Show the list of words for the current round.
              * @param data{{round: *, word: *, answer: *, list: Array}}
@@ -1129,7 +1183,9 @@ jQuery(function($){
                 if (App.Player.priorityAnswerCurrentRanking === 0){
                     App.Player.onPlayerClickPriorityReset();
                 }
-                if (App.Player.priorityAnswerCurrentRanking < 5){
+                // Verify if the button has not already been clicked
+                document.getElementById(word).innerHTML
+                if ((App.Player.priorityAnswerCurrentRanking < 5) && (document.getElementById(word).innerHTML === '')){
                     App.Player.priorityAnswerCurrentRanking += 1;
                     document.getElementById(word).innerHTML = App.Player.priorityAnswerCurrentRanking;
                 }

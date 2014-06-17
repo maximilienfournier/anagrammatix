@@ -349,6 +349,25 @@ html, body {
     text-align: right;
 }
 
+#pausingArea{
+    font-family: 'Quicksand', sans-serif;
+    font-size: 100px;
+    max-font-size: 100px;
+    position: fixed;
+    right: 100px;
+    bottom: 100px;
+    height: 50%;
+    width: 75%;
+}
+
+.btnContinueGame{
+    width: 100%;
+    border-bottom: 1px dotted white;
+    font-weight: 10;
+    font-size: 1em;
+    color: #AE37B2;
+}
+
 
 /* ******************************
           TITLE SCREEN

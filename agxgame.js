@@ -346,5 +346,10 @@ var QuestionObject5 = {
     arrayOfAnswers: [{value:'Attention', bool: true}, {value:'Blue', bool: true}, {value:'Color', bool: true}, {value:'Diamond', bool: true}, {value:'Echo', bool: true}]
 };
 
-var QuestionPool = [QuestionObject5, QuestionObject4, QuestionObject3, QuestionObject2, QuestionObject1]
+var PausingObject = {
+    questionType: 'pausingObject',
+    text: 'This is the text to be displayed during the pause'
+};
+
+var QuestionPool = [QuestionObject5, PausingObject, QuestionObject4, QuestionObject3, QuestionObject2, QuestionObject1]
 
