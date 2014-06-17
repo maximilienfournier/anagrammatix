@@ -329,7 +329,13 @@ jQuery(function($){
              */
             onCreateClick: function () {
                 console.log('Clicked "Create A Game"');
-                App.Host.numberOfPlayers = parseInt(prompt("How many players?"));
+                var number = prompt("How many players?");
+                var isNotNumber = isNaN(number);
+                while(isNotNumber){
+                    number = prompt("You did not choose a correct number. How many players?");
+                    isNotNumber = isNaN(number);
+                }
+                App.Host.numberOfPlayers = parseInt(number);
                 IO.socket.emit('hostCreateNewGame');
             },
 
