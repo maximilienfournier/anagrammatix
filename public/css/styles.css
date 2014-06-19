@@ -1,14 +1,25 @@
 /*
 
+// Original design colors
  Dark Green : #78BD4C
   Mid Green : #A8FF56
        Lite : #ECFFE0
 Dark Purple : #A22FB0
 
+// Blue Design colors
+Lite Blue   : #59ACFF
+Mid Blue    : #0580fc
+Dark Blue   : #3A7ABA
+White       : #FFFFFF
+Mid Green   : #47B547
+Red         : #CF0000
+Brick       : #b91119
+Yellow      : #FFCC00
+
 */
 
 html, body {
-    background-color: #78BD4C;
+    background-color: #59ACFF;
     height: 100%;
     width: 100%;
     margin: 0;
@@ -27,13 +38,13 @@ html, body {
     height: 100%;
     width: 49%;
     margin-bottom: 0;
-    color: #ECFFE0;
+    color: #FFFFFF;
     font-family: 'Quicksand', sans-serif;
     font-weight: 700;
     font-size: 2em;
     line-height: 1.2;
     text-align: center;
-    background-color: #8AD453;
+    background-color: #0580fc;
     white-space: nowrap;
     vertical-align: middle;
     cursor: pointer;
@@ -53,7 +64,7 @@ html, body {
 
 .btn:hover,
 .btn:focus {
-    color: #AE37B2;
+    color: #CF0000;
     text-decoration: none;
 }
 
@@ -100,7 +111,7 @@ html, body {
     text-align: center;
     width: 100%;
     font-family: 'Quicksand', sans-serif;
-    color: #ECFFE0;
+    color: #FFFFFF;
     font-weight: 300;
 }
 
@@ -121,14 +132,14 @@ html, body {
 }
 
 .createGameWrapper .info{
-    color: #ECFFE0;
+    color: #FFFFFF;
     font-weight: 400;
     font-size: 2em;
     margin-top: 1.5em;
 }
 
 .createGameWrapper{
-    color: #AE37B2;
+    color: #CF0000;
     font-weight: 300;
 }
 
@@ -142,7 +153,7 @@ html, body {
     width: 200px;
     height: 60px;
     font-family: 'Quicksand', sans-serif;
-    color: #A22FB0;
+    color: #FFFFFF;
     font-weight: 300;
     font-size: 54px;
     border: 1px dotted white;
@@ -169,7 +180,7 @@ html, body {
 
 .joinGameWrapper .info {
     font-size: 1.5em;
-    color: #ECFFE0;
+    color: #FFFFFF;
     height: 30%;
     padding-top: 1%;
 }
@@ -211,12 +222,31 @@ html, body {
     height: 16.6%;
 }
 
+#ulAnswers input {
+    width: 90%;
+    height: 100%;
+    margin: auto;
+    text-align: center;
+    padding: 10px;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    display: block;
+    font-family: 'Quicksand', sans-serif;
+    color: #FFFFFF;
+    font-weight: 300;
+    font-size: 54px;
+    border: 1px dotted white;
+    border-radius: 10px;
+    background: transparent;
+}
+
 .btnAnswer {
     width: 100%;
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
+    background-color: #59ACFF;
 }
 
 #openAnswers{
@@ -230,35 +260,38 @@ html, body {
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
 }
 .btnPriorityAnswer{
     width: 70%;
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
+    background-color: #59ACFF;
 }
 .btnPriorityAnswerNumber{
     width: 30%;
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
+    background-color: #59ACFF;
 }
 .btnPriorityAnswerSubmit{
     width: 50%;
     border-bottom: 1px dotted white;
+    border-right: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
 }
 .btnPriorityAnswerReset{
     width: 50%;
     border-bottom: 1px dotted white;
     font-weight: 400;
     font-size: 3em;
-    color: #AE37B2;
+    color: #FFFFFF;
 }
 
 
@@ -273,7 +306,7 @@ html, body {
     font-weight: 400;
     position: absolute;
     height: 50%;
-    width: 50%;
+    width: 80%;
     margin: auto;
     bottom: 0;
     left: 0;
@@ -332,12 +365,12 @@ html, body {
 
 .playerScore .score {
     text-align: center;
-    background-color: #A8FF56;
+    background-color: #FFCC00;
 }
 
 .playerScore .playerName {
     width: 77%;
-    background-color: #ECFFE0;
+    background-color: #FFFFFF;
 }
 
 #player1Score {

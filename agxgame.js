@@ -45,24 +45,26 @@ function hostCreateNewGame() {
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
-    
-    // Check connection to MySQL
+
+    // Connection to MySQL
     connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
-            process.exit(1);
+
+            // kills the server if the connection is not working
+            // process.exit(1);
         }else{
             console.log('Connected to MySQL server.');
+
+            // Run a test query on MySQL to make sure it works!
+            connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
+                console.log('This is a test query from MySQL:'+rows[0].question_text)
+            });
+
+            connection.end(function(err) {
+                console.log('The SQL connection has been terminated')
+            });
         }
-    });
-
-    // Run a test query on MySQL to make sure it works!
-    connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
-        console.log('This is a test query from MySQL:'+rows[0].question_text)
-    });
-
-    connection.end(function(err) {
-        console.log('The SQL connection has been terminated')
     });
 
     // Create a unique Socket.IO Room

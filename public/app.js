@@ -799,8 +799,8 @@ jQuery(function($){
                 // Those two arrays represent the position of the words in the arrayOfAnswers.
                 var correctAnswer = [0,1,2,3,4];
                 var playerAnswer = [];
-
                 var playerAnswerText = App.Host.players[playerIndex].currentAnswer;
+<<<<<<< HEAD
                 if(typeof(playerAnswerText) != 'undefined'){
                     for (var i = 0; i < correctAnswer.length; i++) {
                         var word = App.Host.questionData.arrayOfAnswers[i]['value'];
@@ -808,27 +808,29 @@ jQuery(function($){
                     }
                 }
                 
+=======
+>>>>>>> Improving-design
                 var scoreForThisRound = 0;
                 var maxPoints = App.Host.questionData.maxPoints;
                 var minPoints = App.Host.questionData.minPoints;
                 var rev = correctAnswer.slice(0).reverse();
                 var distanceMax = App.distanceBetweenArrays(correctAnswer,rev);
-
-
                 var range = 0.5; // Percentage of distanceMax from which the score is set to minPoints
-                if((typeof(playerAnswerText) != 'undefined') && (playerAnswer.indexOf(-1) === -1)){
+                if(typeof(playerAnswerText) != 'undefined'){
                     for (var i = 0; i < correctAnswer.length; i++) {
                         var word = App.Host.questionData.arrayOfAnswers[i]['value'];
                         playerAnswer[i] = playerAnswerText.indexOf(word);
                     }
-                    var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
-                    if(distance < range*distanceMax){
-                        scoreForThisRound = App.Host.maxPoints - distance*(App.Host.maxPoints-App.Host.minPoints)/(distanceMax*range);
+                    if (playerAnswer.indexOf(-1) === -1){
+                        var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
+                        if(distance < range*distanceMax){
+                            scoreForThisRound = App.Host.maxPoints - distance*(App.Host.maxPoints-App.Host.minPoints)/(distanceMax*range);
+                        }
+                        else{
+                            scoreForThisRound = App.Host.minPoints;
+                        }
+                        scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
                     }
-                    else{
-                        scoreForThisRound = App.Host.minPoints;
-                    }
-                    scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
                 }
                 console.log(scoreForThisRound); 
 
@@ -1119,9 +1121,6 @@ jQuery(function($){
                             .attr('type', 'text')
                             .attr('id','openQuestionText')
                         )
-
-                    )
-                    .append( $('<li/>')              //  <ul> <li> </li> </ul>
                         .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
                             .addClass('btnOpenAnswer')   //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
                             .addClass('btn')         //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
