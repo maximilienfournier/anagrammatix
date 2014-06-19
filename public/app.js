@@ -800,16 +800,12 @@ jQuery(function($){
                 var correctAnswer = [0,1,2,3,4];
                 var playerAnswer = [];
                 var playerAnswerText = App.Host.players[playerIndex].currentAnswer;
-<<<<<<< HEAD
                 if(typeof(playerAnswerText) != 'undefined'){
                     for (var i = 0; i < correctAnswer.length; i++) {
                         var word = App.Host.questionData.arrayOfAnswers[i]['value'];
                         playerAnswer[i] = playerAnswerText.indexOf(word);
                     }
-                }
-                
-=======
->>>>>>> Improving-design
+                } 
                 var scoreForThisRound = 0;
                 var maxPoints = App.Host.questionData.maxPoints;
                 var minPoints = App.Host.questionData.minPoints;
@@ -817,10 +813,6 @@ jQuery(function($){
                 var distanceMax = App.distanceBetweenArrays(correctAnswer,rev);
                 var range = 0.5; // Percentage of distanceMax from which the score is set to minPoints
                 if(typeof(playerAnswerText) != 'undefined'){
-                    for (var i = 0; i < correctAnswer.length; i++) {
-                        var word = App.Host.questionData.arrayOfAnswers[i]['value'];
-                        playerAnswer[i] = playerAnswerText.indexOf(word);
-                    }
                     if (playerAnswer.indexOf(-1) === -1){
                         var distance = App.distanceBetweenArrays(playerAnswer,correctAnswer);
                         if(distance < range*distanceMax){
