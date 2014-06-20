@@ -352,6 +352,16 @@ jQuery(function($){
                 */
                 App.$gameArea.html(App.$templateSetupNewGame);
 
+                var $text  = $('<div/>');
+                $text.append($('<div/>').html('').addClass('addColumn'));
+                $text.append($('<div/>').html('').addClass('roundColumn'));
+                $text.append($('<div/>').html('Theme').attr('id','aTheme').addClass('themeColumn'));
+                $text.append($('<div/>').html('Type of questions').attr('id','aTypeOfQuestions').addClass('typeColumn'));
+                $text.append($('<div/>').html('Number of questions').attr('id','aNumberOfQuestions').addClass('numberColumn'));
+                $text.append($('<div/>').html('Difficulty').attr('id','aDifficulty').addClass('difficultyColumn'));
+                $text.append($('<div/>').html('Speed scoring').attr('id','aSpeedScoring').addClass('speedScoringColumn'));
+
+                
                 var $list = $('<ul/>').attr('id','roundsProperties');
 
                 // Insert a list item for each word in the word list
@@ -360,40 +370,69 @@ jQuery(function($){
                 $list
                     .append($('<li/>')
                             .val(0)                   
-                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn'))
-                            .append($('<a/>').attr('id','roundName').html('Round 1'))
-                            .append($('<a/>').html('Theme:'))
+                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn').addClass('addColumn'))
+                            .append($('<a/>').attr('id','roundName').html('Round 1').addClass('roundColumn'))
+                            
                             .append($('<select/>')
                                 .addClass('btn')
+                                .addClass('themeColumn')
                                 .attr('id','roundTag')
                                 .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('art').html('Art'))
                                 .append($('<option/>').val('geography').html('Geography'))
+                                .append($('<option/>').val('history').html('History'))
                             )
-                            .append($('<a/>').html('Type of questions:'))
                             .append($('<select/>')
                                 .addClass('btn')
+                                .addClass('typeColumn')
                                 .attr('id','roundQuestionType')
                                 .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
                                 .append($('<option/>').val('openQuestion').html('Open answer'))
                                 .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
                             )
-                            .append($('<a/>').html('Number of questions:'))
-                            .append($('<input/>')
-                                .attr('id','roundNumberOfQuestions')
+                            
+                            .append($('<div/>')
+                                .addClass('numberColumn')
+                                .append($('<input/>')
+                                    .attr('id','roundNumberOfQuestions')
+                                )
                             )
+                            
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .addClass('difficultyColumn')
+                                .attr('id','roundDifficulty')
+                                .append($('<option/>').val('easy').html('Easy'))
+                                .append($('<option/>').val('medium').html('Medium'))
+                                .append($('<option/>').val('hard').html('Hard'))
+                                .append($('<option/>').val('mix').html('All'))
+                            )
+                            .append($('<div/>')
+                                .addClass('speedScoringColumn')
+                                .append($('<input/>')
+                                    .attr('id','roundSpeedScoring')
+                                    .attr('type','checkbox')
+                                    .addClass('btn')
+                                )
+                            )
+                            
+                            
                         
 
                     )
                     .append($('<li/>')
-                        .append($('<button/>').attr('id','addRound').html('+').addClass('btn'))
+                        .append($('<button/>').attr('id','addRound').html('+').addClass('btn').addClass('addColumn'))
                     )
             
 
                 App.Host.numberOfRounds = 1;
                 // Insert the list onto the screen.
-                $('#divRoundProperties').html($list);
+                //$('#divRoundProperties').html($list);
+
+                var $total = $('<div/>');
+                $total.append($text).append($list);
+                $('#divRoundProperties').html($total);
 
                 //var liItems = document.getElementById('roundsProperties').getElementsByTagName('li');
                 //console.log(liItems[1].innerHTML);
@@ -422,28 +461,51 @@ jQuery(function($){
                 App.Host.numberOfRounds +=1;
                 var $newLi = $('<li/>')
                             .val(App.Host.numberOfRounds-1)                   
-                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn'))
-                            .append($('<a/>').attr('id','roundName').html('Round '+App.Host.numberOfRounds))
-                            .append($('<a/>').html('Theme:'))
+                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn').addClass('addColumn'))
+                            .append($('<a/>').attr('id','roundName').html('Round 1').addClass('roundColumn'))
+                            
                             .append($('<select/>')
                                 .addClass('btn')
+                                .addClass('themeColumn')
                                 .attr('id','roundTag')
                                 .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('art').html('Art'))
                                 .append($('<option/>').val('geography').html('Geography'))
+                                .append($('<option/>').val('history').html('History'))
                             )
-                            .append($('<a/>').html('Type of questions:'))
                             .append($('<select/>')
                                 .addClass('btn')
+                                .addClass('typeColumn')
                                 .attr('id','roundQuestionType')
                                 .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
                                 .append($('<option/>').val('openQuestion').html('Open answer'))
                                 .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
                             )
-                            .append($('<a/>').html('Number of questions:'))
-                            .append($('<input/>')
-                                .attr('id','roundNumberOfQuestions')
+                            
+                            .append($('<div/>')
+                                .addClass('numberColumn')
+                                .append($('<input/>')
+                                    .attr('id','roundNumberOfQuestions')
+                                )
+                            )
+                            
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .addClass('difficultyColumn')
+                                .attr('id','roundDifficulty')
+                                .append($('<option/>').val('easy').html('Easy'))
+                                .append($('<option/>').val('medium').html('Medium'))
+                                .append($('<option/>').val('hard').html('Hard'))
+                                .append($('<option/>').val('mix').html('All'))
+                            )
+                            .append($('<div/>')
+                                .addClass('speedScoringColumn')
+                                .append($('<input/>')
+                                    .attr('id','roundSpeedScoring')
+                                    .attr('type','checkbox')
+                                    .addClass('btn')
+                                )
                             );
                             
                 $('#roundsProperties li:eq(-2)').after($newLi);
@@ -491,11 +553,15 @@ jQuery(function($){
                 var setupOfGame = [];
                 $('#roundsProperties li').each(function(index) {
                     if (index < App.Host.numberOfRounds){
-                        setupOfGame[index] = {  tag: $(this).children('#roundTag').val(), 
-                                                questionType: $(this).children('#roundQuestionType').val(),
-                                                numberOfQuestions: parseInt($(this).children('#roundNumberOfQuestions').val())
+                        setupOfGame[index] = {  tag: $(this).find('#roundTag').val(), 
+                                                questionType: $(this).find('#roundQuestionType').val(),
+                                                numberOfQuestions: parseInt($(this).find('#roundNumberOfQuestions').val()),
+                                                difficulty: $(this).find('#roundDifficulty').val(),
+                                                speedScoring: $(this).find('#roundSpeedScoring').is(':checked')
                                              };
-                        console.log($(this).children('#roundNumberOfQuestions').val());
+                        console.log($(this).find('#roundNumberOfQuestions').val());
+                        console.log($(this).find('#roundDifficulty').val());
+                        console.log($(this).find('#roundSpeedScoring').is(':checked'));
                     }
                 });
                 console.log(setupOfGame);

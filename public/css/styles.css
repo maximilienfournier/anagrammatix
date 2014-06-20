@@ -120,6 +120,10 @@ html, body {
     text-align: center;
 }
 
+#divRoundProperties{
+    margin-top: 30px;
+}
+
 /* ******************************
           START SCREEN
      (create-game-template)
@@ -149,9 +153,6 @@ html, body {
 
 .info input {
     text-align: center;
-    padding: 10px;
-    width: 200px;
-    height: 60px;
     font-family: 'Quicksand', sans-serif;
     color: #FFFFFF;
     font-weight: 300;
@@ -222,51 +223,87 @@ html, body {
     padding: 0;
 }
 
-#roundsProperties{
-    width: 100%;
-}
 #roundsProperties li{
     width: 100%;
-    padding-left: 10px;
     padding-bottom: 10px;
 }
 
 #roundsProperties li a{
-    width:90px;
-    padding-left: 30px;
-    padding-right: 20px;
 
 }
 #roundsProperties li button{
-    width:auto;
     height:auto;
+    border-radius: 10px;
 }
 
 #roundsProperties li select{
-    width:auto;
     font-size: 16px;
 }
 
 #roundsProperties li input{
     color: #ECFFE0;
-    width: auto;
     height: auto;
     font-weight: 300;
     font-size: 20px;
 }
 
-#roundName{
-
-}
-
 #numberOfPlayersInput{
     color: #ECFFE0;
-    width: auto;
     height: auto;
     font-weight: 300;
     font-size: 20px;
     margin-top: 1.5em;
 }
+#roundNumberOfQuestions{
+    width: 30px;
+}
+#aTheme{
+    width: 10%;
+}
+
+.addColumn{
+    width: 30px;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+.roundColumn{
+    width: 70px;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+.themeColumn{
+    width: 10%;
+    margin-left: 30px;
+    display:inline-block;
+    text-align:center;
+}
+.typeColumn{
+    width: 15%;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+.numberColumn{
+    width: 15%;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+.difficultyColumn{
+    width: 10%;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+.speedScoringColumn{
+    width: 10%;
+    margin-left: 10px;
+    display:inline-block;
+    text-align:center;
+}
+
 /* ******************************
           PLAYER GAME SCREEN
 

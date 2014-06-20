@@ -119,7 +119,7 @@ function createQuestionPoolDBRound(setupOfGame, index){
         // Number of questions in the round, dealing with the case when not enough questions to create the round
         // That could be enhanced by selecting questions that are related to the wanted criterias
         console.log("setupOfGame " + setupOfGame);
-        console.log(rows);
+        //console.log(rows);
         console.log('setupOfGame.numberOfQuestions '+ setupOfGame[index].numberOfQuestions);
         if (rows.length<setupOfGame[index].numberOfQuestions){
             var numberOfQuestions = rows.length;
@@ -142,14 +142,19 @@ function createQuestionPoolDBRound(setupOfGame, index){
           }
           if(!found)arr[arr.length]=randomNumber;
         }
-        console.log('arr '+ arr);
 
         // Creates the questions and add them to the QuestionPoolDB object
         console.log('Beginning of questions');
         for(var i = 0; i<numberOfQuestions;i++){
-
-            console.log(rows[arr[i]]);
             var question = createQuestionObject(rows[arr[i]]);
+            // Adding speed scoring if necessary
+            //console.log('speedScoring for round '+ index + ' ' + setupOfGame[index].speedScoring);
+            if (setupOfGame[index].speedScoring === true){
+                question.speedScoring = true;
+            }
+            else{
+                question.speedScoring = false;
+            }
             console.log(question);
             QuestionPoolDB.push(question);
         }
@@ -178,11 +183,14 @@ function createQuestionPoolDBRound(setupOfGame, index){
  function buildSqlQuery(properties){
     var sqlQuery = 'SELECT * FROM questions';
     var added= false;
+
+    // Adding the tag
     if (properties.tag != 'random'){
         added = true;
-        sqlQuery += " WHERE tags = '" + properties.tag + "'";
+        sqlQuery += " WHERE tags LIKE '%" + properties.tag + "%'";
     }
 
+    // Adding the question type
     if (properties.questionType != 'random'){
         if (!added){
             sqlQuery += ' WHERE';
@@ -191,6 +199,17 @@ function createQuestionPoolDBRound(setupOfGame, index){
             sqlQuery += ' AND';
         }
         sqlQuery += " question_type = '" + properties.questionType +"'";
+    }
+
+    // Adding the difficulty
+    if(properties.difficulty != 'mix'){
+        if (!added){
+            sqlQuery += ' WHERE';
+        }
+        else{
+            sqlQuery += ' AND';
+        }
+        sqlQuery += " difficulty = '" + properties.difficulty +"'";
     }
 
     return sqlQuery;
