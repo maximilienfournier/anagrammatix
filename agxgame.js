@@ -91,16 +91,6 @@ function createSetOfQuestionFromDB(setupOfGame){
       database : 'sql543533',
     });
 
-    /*
-    connection.connect(function(err){
-        if(err){
-            console.log('Error connecting to MySQL server: ' + err.code + '.');
-            process.exit(1);
-        }else{
-            console.log('Connected to MySQL server.');
-        }
-    });
-    */
 
     // Building the QuestionPoolDB
     // Create queries
@@ -110,68 +100,7 @@ function createSetOfQuestionFromDB(setupOfGame){
     console.log(queries);
 
     createQuestionPoolDBRound(setupOfGame, 0);
-    /*
-
-    for(var j = 0; j<setupOfGame.length; j++){
-        // Building the SQL query
-        var finished = false;
-        var sqlQuery = buildSqlQuery(setupOfGame[j]);
-        console.log(sqlQuery + " Before");
-
-        connection.query(sqlQuery, function(err, rows, fields){
-            // Number of questions in the round, dealing with the case when not enough questions to create the round
-            // That could be enhanced by selecting questions that are related to the wanted criterias
-            console.log(sqlQuery + " Inside");
-            if (rows.length<setupOfGame.numberOfQuestions){
-                var numberOfQuestions = rows.length;
-            }
-            else{
-                var numberOfQuestions = setupOfGame.numberOfQuestions;
-            }
-            // Generating random indexes to pick up random questions from the one selected in the DB
-            var arr = []
-            while(arr.length < numberOfQuestions){
-              var randomNumber=Math.ceil(Math.random()*rows.length)
-              var found=false;
-              for(var i=0;i<arr.length;i++){
-                if(arr[i]==randomNumber){
-                    found=true;
-                    break
-                }
-              }
-              if(!found)arr[arr.length]=randomNumber;
-            }
-
-            // Creates the questions and add them to the QuestionPoolDB object
-            for(var i = 0; i<numberOfQuestions;i++){
-                var question = createQuestionObject(rows[arr[i]]);
-                QuestionPoolDB.push(question);
-            }
-
-            // Adding a pause between each round
-            var PausingObject = {
-                questionType: 'pausingObject',
-                text: 'This is the text to be displayed during the pause'
-            };
-            QuestionPoolDB.push(PausingObject);
-            //console.log(QuestionPoolDB);
-            finished = true;
-
-            connection.end(function(err) {
-                console.log('The SQL connection has been terminated')
-            });
-        });
-
-        console.log(sqlQuery + " After");
-
-    }
-    */
-
-    /*
-    connection.end(function(err) {
-        console.log('The SQL connection has been terminated')
-    });
-    */
+    
 };
 
 /*
