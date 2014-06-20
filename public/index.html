@@ -39,7 +39,16 @@
 
     </script>
 
+
     <!-- This screen appears when a user clicks "CREATE" on the Title Screen -->
+    <<script id="setup-game-template" type="text/template">
+        <div class="setupGameWrapper">
+            <div class="info">Number of players: <input type="text" id="numberOfPlayersInput"></input><a id='messageNaN'></a></div>
+            <div class='info' id='divRoundProperties'></div>
+            <button class="btn" id="btnGenerateGame">Generate game</button>
+        </div>
+    </script>
+    
     <script id="create-game-template" type="text/template">
         <div class="createGameWrapper">
 

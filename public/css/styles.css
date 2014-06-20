@@ -154,6 +154,14 @@ html, body {
     width: 90%;
 }
 
+.btnGenerateGame{
+    width: 70%;
+    border-bottom: 1px dotted white;
+    font-weight: 400;
+    font-size: 3em;
+    color: #AE37B2;
+
+}
 
 /* ******************************
            JOIN SCREEN
@@ -191,8 +199,63 @@ html, body {
     font-size: 8em;
 }
 
+.setupGameWrapper{
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    width: 100%;
+}
+#roundsProperties{
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
 
+#roundsProperties{
+    width: 100%;
+}
+#roundsProperties li{
+    width: 100%;
+    padding-left: 10px;
+    padding-bottom: 10px;
+}
 
+#roundsProperties li a{
+    width:90px;
+    padding-left: 30px;
+    padding-right: 20px;
+
+}
+#roundsProperties li button{
+    width:auto;
+    height:auto;
+}
+
+#roundsProperties li select{
+    width:auto;
+    font-size: 16px;
+}
+
+#roundsProperties li input{
+    color: #ECFFE0;
+    width: auto;
+    height: auto;
+    font-weight: 300;
+    font-size: 20px;
+}
+
+#roundName{
+
+}
+
+#numberOfPlayersInput{
+    color: #ECFFE0;
+    width: auto;
+    height: auto;
+    font-weight: 300;
+    font-size: 20px;
+    margin-top: 1.5em;
+}
 /* ******************************
           PLAYER GAME SCREEN
 
@@ -221,7 +284,7 @@ html, body {
 
 #openAnswers{
     width: 100%;
-    height: 100%;
+    height: 15%;
     margin: 0;
     padding: 0;
 }
@@ -231,6 +294,7 @@ html, body {
     font-weight: 400;
     font-size: 3em;
     color: #AE37B2;
+
 }
 .btnPriorityAnswer{
     width: 70%;
@@ -261,7 +325,20 @@ html, body {
     color: #AE37B2;
 }
 
+#openQuestionText{
+    width: 50%;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-size: 2em;
+}
 
+#pausingText{
+    color: #ECFFE0;
+    font-weight: 400;
+    font-size: 2em;
+    margin-top: 1.5em;
+}
+    
 /* ******************************
             HOST SCREEN
        (host-game-template)

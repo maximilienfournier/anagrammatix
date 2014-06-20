@@ -2,6 +2,7 @@ var io;
 var gameSocket;
 var mysql = require('mysql');
 var QuestionPoolDB = [];
+var queries = [];
 
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -38,31 +39,32 @@ exports.initGame = function(sio, socket){
 /**
  * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
  */
-function hostCreateNewGame() {
+function hostCreateNewGame(setupOfGame) {
     var connection = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
-    
     // Check connection to MySQL
     connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
-            process.exit(1);
+            //process.exit(1);
         }else{
             console.log('Connected to MySQL server.');
+            // Run a test query on MySQL to make sure it works!
+            connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
+                console.log('This is a test query from MySQL:'+rows[0].question_text)
+            });
+
+            createSetOfQuestionFromDB(setupOfGame);
+            /*
+            connection.end(function(err) {
+            console.log('The SQL connection has been terminated')
+            });
+            */
         }
-    });
-
-    // Run a test query on MySQL to make sure it works!
-    connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
-        console.log('This is a test query from MySQL:'+rows[0].question_text)
-    });
-
-    connection.end(function(err) {
-        console.log('The SQL connection has been terminated')
     });
 
     // Create a unique Socket.IO Room
@@ -73,14 +75,15 @@ function hostCreateNewGame() {
     // Join the Room and wait for the players
     this.join(thisGameId.toString());
 
-    createSetOfQuestionFromDB();
+
+    
 };
 
 /* 
  * Creates a set of question from DB
  */
 
-function createSetOfQuestionFromDB(){
+function createSetOfQuestionFromDB(setupOfGame){
     var connection = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
@@ -88,6 +91,7 @@ function createSetOfQuestionFromDB(){
       database : 'sql543533',
     });
 
+    /*
     connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
@@ -96,20 +100,172 @@ function createSetOfQuestionFromDB(){
             console.log('Connected to MySQL server.');
         }
     });
+    */
 
-    // Run a test query on MySQL to make sure it works!
-    connection.query('SELECT * FROM questions', function(err, rows, fields){
-        for(var i = 0; i<rows.length;i++){
-            var question = createQuestionObject(rows[i]);
-            QuestionPoolDB[i] = question;
-        }
-    });
+    // Building the QuestionPoolDB
+    // Create queries
+    for(var j = 0; j<setupOfGame.length; j++){
+        queries[j] = buildSqlQuery(setupOfGame[j]);
+    }
+    console.log(queries);
 
+    createQuestionPoolDBRound(setupOfGame, 0);
+    /*
+
+    for(var j = 0; j<setupOfGame.length; j++){
+        // Building the SQL query
+        var finished = false;
+        var sqlQuery = buildSqlQuery(setupOfGame[j]);
+        console.log(sqlQuery + " Before");
+
+        connection.query(sqlQuery, function(err, rows, fields){
+            // Number of questions in the round, dealing with the case when not enough questions to create the round
+            // That could be enhanced by selecting questions that are related to the wanted criterias
+            console.log(sqlQuery + " Inside");
+            if (rows.length<setupOfGame.numberOfQuestions){
+                var numberOfQuestions = rows.length;
+            }
+            else{
+                var numberOfQuestions = setupOfGame.numberOfQuestions;
+            }
+            // Generating random indexes to pick up random questions from the one selected in the DB
+            var arr = []
+            while(arr.length < numberOfQuestions){
+              var randomNumber=Math.ceil(Math.random()*rows.length)
+              var found=false;
+              for(var i=0;i<arr.length;i++){
+                if(arr[i]==randomNumber){
+                    found=true;
+                    break
+                }
+              }
+              if(!found)arr[arr.length]=randomNumber;
+            }
+
+            // Creates the questions and add them to the QuestionPoolDB object
+            for(var i = 0; i<numberOfQuestions;i++){
+                var question = createQuestionObject(rows[arr[i]]);
+                QuestionPoolDB.push(question);
+            }
+
+            // Adding a pause between each round
+            var PausingObject = {
+                questionType: 'pausingObject',
+                text: 'This is the text to be displayed during the pause'
+            };
+            QuestionPoolDB.push(PausingObject);
+            //console.log(QuestionPoolDB);
+            finished = true;
+
+            connection.end(function(err) {
+                console.log('The SQL connection has been terminated')
+            });
+        });
+
+        console.log(sqlQuery + " After");
+
+    }
+    */
+
+    /*
     connection.end(function(err) {
         console.log('The SQL connection has been terminated')
     });
+    */
 };
 
+/*
+ * Creates the question pool for the round "index"
+ */
+function createQuestionPoolDBRound(setupOfGame, index){
+    console.log('createQuestionPoolDBRound '+ index);
+    console.log(queries[index]);
+    var connection = mysql.createConnection({
+      host     : 'sql5.freemysqlhosting.net',
+      user     : 'sql543533',
+      password : 'dD2!mQ5*',
+      database : 'sql543533',
+    });
+    connection.query(queries[index], function(err, rows, fields){
+        // Number of questions in the round, dealing with the case when not enough questions to create the round
+        // That could be enhanced by selecting questions that are related to the wanted criterias
+        console.log("setupOfGame " + setupOfGame);
+        console.log(rows);
+        console.log('setupOfGame.numberOfQuestions '+ setupOfGame[index].numberOfQuestions);
+        if (rows.length<setupOfGame[index].numberOfQuestions){
+            var numberOfQuestions = rows.length;
+        }
+        else{
+            var numberOfQuestions = parseInt(setupOfGame[index].numberOfQuestions);
+        }
+        console.log('numberOfQuestions ' + numberOfQuestions);
+
+        // Generating random indexes to pick up random questions from the one selected in the DB
+        var arr = []
+        while(arr.length < numberOfQuestions){
+          var randomNumber=Math.round(Math.random()*(rows.length-1))
+          var found=false;
+          for(var i=0;i<arr.length;i++){
+            if(arr[i]==randomNumber){
+                found=true;
+                break
+            }
+          }
+          if(!found)arr[arr.length]=randomNumber;
+        }
+        console.log('arr '+ arr);
+
+        // Creates the questions and add them to the QuestionPoolDB object
+        console.log('Beginning of questions');
+        for(var i = 0; i<numberOfQuestions;i++){
+
+            console.log(rows[arr[i]]);
+            var question = createQuestionObject(rows[arr[i]]);
+            console.log(question);
+            QuestionPoolDB.push(question);
+        }
+        console.log('End of questions');
+
+        // Adding a pause between each round
+        if (index < setupOfGame.length-1){
+            var nextRound = index + 2;
+            var PausingObject = {
+                questionType: 'pausingObject',
+                text: 'Be ready for round ' + nextRound
+            };
+            QuestionPoolDB.push(PausingObject);
+        }
+        
+
+        if(index < queries.length-1){
+            createQuestionPoolDBRound(setupOfGame, index+1);
+        }
+    });
+};
+ 
+/*
+ * Creates the SQL query from the array of properties
+ */
+ function buildSqlQuery(properties){
+    var sqlQuery = 'SELECT * FROM questions';
+    var added= false;
+    if (properties.tag != 'random'){
+        added = true;
+        sqlQuery += " WHERE tags = '" + properties.tag + "'";
+    }
+
+    if (properties.questionType != 'random'){
+        if (!added){
+            sqlQuery += ' WHERE';
+        }
+        else{
+            sqlQuery += ' AND';
+        }
+        sqlQuery += " question_type = '" + properties.questionType +"'";
+    }
+
+    return sqlQuery;
+ };
 /*
  * Creates a question object from a row of DB
  */
@@ -129,7 +285,7 @@ function createSetOfQuestionFromDB(){
                          {value: row.answer4_text, bool: (row.answer4_correct==1)}, 
                          {value: row.answer5_text, bool: (row.answer5_correct==1)}]
     };
-    console.log(QuestionObject.arrayOfAnswers);
+    //console.log(QuestionObject.arrayOfAnswers);
     return QuestionObject;
  };
 /*
@@ -163,8 +319,14 @@ function hostStartGame(gameId) {
  */
 function hostNextRound(data) {
 	console.log('Asked for a new round');
-    // To be changed if using questionPoolDB or questionPool
-    if(data.round < QuestionPoolDB.length ){
+    if (QuestionPoolDB.length === 0){
+        // No connection to the DB
+        var limit = QuestionPool.length;
+    }
+    else{
+        var limit = QuestionPoolDB.length;
+    }
+    if(data.round < limit ){
     	console.log('Not at the end of the pool, creating a new set of words.')
         // Send a new set of questions back to the host and players.
         sendQuestion(data.round, data.gameId);
@@ -314,10 +476,13 @@ function sendQuestion(QuestionPoolIndex, gameId) {
 */
 
 function getQuestionData(i){
-    // Using the questions in code
-    //var question = QuestionPool[i];
-    // Using the question pool from DB
-    var question = QuestionPoolDB[i];
+    if (QuestionPoolDB.length === 0){
+        // No connection to the DB, using the hard coded questions
+        var question = QuestionPool[i];
+    }
+    else{
+        var question = QuestionPoolDB[i];
+    }    
     question.round = i;
     return question;
 }

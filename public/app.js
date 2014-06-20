@@ -222,6 +222,7 @@ jQuery(function($){
             App.$templateNewGame = $('#create-game-template').html();
             App.$templateJoinGame = $('#join-game-template').html();
             App.$hostGame = $('#host-game-template').html();
+            App.$templateSetupNewGame = $('#setup-game-template').html();
         },
 
         /**
@@ -234,6 +235,7 @@ jQuery(function($){
             // Player
             App.$doc.on('click', '#btnJoinGame', App.Player.onJoinClick);
             App.$doc.on('click', '#btnStart',App.Player.onPlayerStartClick);
+            App.$doc.on('click', '#btnGenerateGame', App.Host.generateNewGame);
             App.$doc.on('click', '.btnAnswer',App.Player.onPlayerAnswerClick);
             App.$doc.on('click', '#btnPlayerRestart', App.Player.onPlayerRestart);
             App.$doc.on('click', '.btnOpenAnswer', App.Player.onPlayerAnswerClickOpenQuestion);
@@ -241,6 +243,11 @@ jQuery(function($){
             App.$doc.on('click','.btnPriorityAnswerReset', App.Player.onPlayerClickPriorityReset);
             App.$doc.on('click','.btnPriorityAnswerSubmit', App.Player.onPlayerClickPrioritySubmit);
             App.$doc.on('click','.btnContinueGame', App.Host.endOfPause);
+            App.$doc.on('click','#addRound', App.Host.addRound);
+            App.$doc.on('click','#deleteRound', App.Host.deleteRound);
+            
+            
+            
             
             
             
@@ -324,19 +331,73 @@ jQuery(function($){
             minPoints : 0,
             maxPoints : 0,
 
+            /*
+             * Number of rounds in the set up page
+             */
+            numberOfRounds :0,
+
             /**
              * Handler for the "Start" button on the Title Screen.
              */
             onCreateClick: function () {
                 console.log('Clicked "Create A Game"');
+                /*
                 var number = prompt("How many players?");
                 var isNotNumber = isNaN(number);
                 while(isNotNumber){
                     number = prompt("You did not choose a correct number. How many players?");
                     isNotNumber = isNaN(number);
                 }
-                App.Host.numberOfPlayers = parseInt(number);
-                IO.socket.emit('hostCreateNewGame');
+                //App.Host.numberOfPlayers = parseInt(number);
+                */
+                App.$gameArea.html(App.$templateSetupNewGame);
+
+                var $list = $('<ul/>').attr('id','roundsProperties');
+
+                // Insert a list item for each word in the word list
+                // received from the server.
+                
+                $list
+                    .append($('<li/>')
+                            .val(0)                   
+                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn'))
+                            .append($('<a/>').attr('id','roundName').html('Round 1'))
+                            .append($('<a/>').html('Theme:'))
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .attr('id','roundTag')
+                                .append($('<option/>').val('random').html('Random'))
+                                .append($('<option/>').val('art').html('Art'))
+                                .append($('<option/>').val('geography').html('Geography'))
+                            )
+                            .append($('<a/>').html('Type of questions:'))
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .attr('id','roundQuestionType')
+                                .append($('<option/>').val('random').html('Random'))
+                                .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
+                                .append($('<option/>').val('openQuestion').html('Open answer'))
+                                .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
+                            )
+                            .append($('<a/>').html('Number of questions:'))
+                            .append($('<input/>')
+                                .attr('id','roundNumberOfQuestions')
+                            )
+                        
+
+                    )
+                    .append($('<li/>')
+                        .append($('<button/>').attr('id','addRound').html('+').addClass('btn'))
+                    )
+            
+
+                App.Host.numberOfRounds = 1;
+                // Insert the list onto the screen.
+                $('#divRoundProperties').html($list);
+
+                //var liItems = document.getElementById('roundsProperties').getElementsByTagName('li');
+                //console.log(liItems[1].innerHTML);
+                
             },
 
             /**
@@ -353,6 +414,104 @@ jQuery(function($){
                 // console.log("Game started with ID: " + App.gameId + ' by host: ' + App.mySocketId);
             },
 
+            /*
+             * Function called when a "+" button is clicked on the game set up page
+             */
+
+             addRound : function(){
+                App.Host.numberOfRounds +=1;
+                var $newLi = $('<li/>')
+                            .val(App.Host.numberOfRounds-1)                   
+                            .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn'))
+                            .append($('<a/>').attr('id','roundName').html('Round '+App.Host.numberOfRounds))
+                            .append($('<a/>').html('Theme:'))
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .attr('id','roundTag')
+                                .append($('<option/>').val('random').html('Random'))
+                                .append($('<option/>').val('art').html('Art'))
+                                .append($('<option/>').val('geography').html('Geography'))
+                            )
+                            .append($('<a/>').html('Type of questions:'))
+                            .append($('<select/>')
+                                .addClass('btn')
+                                .attr('id','roundQuestionType')
+                                .append($('<option/>').val('random').html('Random'))
+                                .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
+                                .append($('<option/>').val('openQuestion').html('Open answer'))
+                                .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
+                            )
+                            .append($('<a/>').html('Number of questions:'))
+                            .append($('<input/>')
+                                .attr('id','roundNumberOfQuestions')
+                            );
+                            
+                $('#roundsProperties li:eq(-2)').after($newLi);
+                
+             },
+
+             /*
+              * Function called when a '-' button is clicked on the game set up page
+              */
+
+            deleteRound : function(){
+                var $btn = $(this);
+                var $li = $btn.parent();
+                var $ul = $li.parent();
+                var rank = $li.val();
+                // Cannot delete only remaining round
+                if (App.Host.numberOfRounds !=1){
+                    // Remove the deleted round
+                    $li.remove();
+                    App.Host.numberOfRounds -=1;
+
+                    // Modifies the number of the other rounds
+                    $('#roundsProperties li').each(function(index) {
+                        if ((rank-1 < index ) && ( index < App.Host.numberOfRounds)){
+                            $(this).val(index);
+                            $(this).children('#roundName').html(function() {
+                                var number = index+1;
+                              return "Round " + number;
+                            }); 
+                            //console.log($(this).val());
+
+                            //console.log( index + ": " + $( this ).text() );
+                        }
+                        
+                    });
+                }
+                
+            },
+            /**
+             * Function called to generate the new game when button clicked
+             */
+
+            generateNewGame : function(){
+                console.log('generateNewGame');
+                var setupOfGame = [];
+                $('#roundsProperties li').each(function(index) {
+                    if (index < App.Host.numberOfRounds){
+                        setupOfGame[index] = {  tag: $(this).children('#roundTag').val(), 
+                                                questionType: $(this).children('#roundQuestionType').val(),
+                                                numberOfQuestions: parseInt($(this).children('#roundNumberOfQuestions').val())
+                                             };
+                        console.log($(this).children('#roundNumberOfQuestions').val());
+                    }
+                });
+                console.log(setupOfGame);
+
+                var number = document.getElementById("numberOfPlayersInput").value;
+                var isNotNumber = isNaN(number);
+                if(isNotNumber){
+                    console.log($('#messageNaN'));
+                    $('#messageNaN').text('This is not a number, please enter a number of players.');
+                }
+                else{
+                    App.Host.numberOfPlayers = parseInt(number);
+                    IO.socket.emit('hostCreateNewGame', setupOfGame);
+                }
+                
+            },
             /**
              * Show the Host screen containing the game URL and unique game ID
              */
@@ -1037,18 +1196,8 @@ jQuery(function($){
 
             pausingGame : function(data){
                 console.log('pausingGame');
-                var $list = $('<ul/>').attr('id','ulAnswers');
-                
-
-                $list                                
-                    .append($('<li/>') 
-                        .append($('<p/>')
-                            .html('Pausing game.')
-                        )
-
-                    )
-
-                $('#gameArea').html($list);
+                var $pauseText = $('<a/>').attr('id','pausingText').text('Pausing game. Have a drink and come back!')
+                $('#gameArea').html($pauseText);
             },
 
             /**
@@ -1116,8 +1265,8 @@ jQuery(function($){
                 $list                                //  <ul> </ul>
                     .append($('<li/>') 
                         .append($('<input/>')
-                            .attr('type', 'text')
                             .attr('id','openQuestionText')
+                            //.addClass('btn')
                         )
 
                     )
