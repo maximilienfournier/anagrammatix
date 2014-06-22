@@ -494,10 +494,10 @@ jQuery(function($){
                                 .addClass('btn')
                                 .addClass('difficultyColumn')
                                 .attr('id','roundDifficulty')
+                                .append($('<option/>').val('mix').html('All'))
                                 .append($('<option/>').val('easy').html('Easy'))
                                 .append($('<option/>').val('medium').html('Medium'))
                                 .append($('<option/>').val('hard').html('Hard'))
-                                .append($('<option/>').val('mix').html('All'))
                             )
                             .append($('<div/>')
                                 .addClass('speedScoringColumn')
@@ -925,9 +925,11 @@ jQuery(function($){
                      // Speed scoring calculated if specified in the question and if player has answered this question
                      if (App.Host.questionData.speedScoring){
                         console.log('Speed scoring');
-                        var secondToAnswer = (App.Host.players[i].timeOfAnswer - App.Host.timeBeginningQuestion)/1000;
-                        scoreForThisRound *= 1-secondToAnswer/App.Host.secondsForThisRound;
-                        scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
+                        if (typeof(App.Host.players[i].timeOfAnswer) != 'undefined'){
+                            var secondToAnswer = (App.Host.players[i].timeOfAnswer - App.Host.timeBeginningQuestion)/1000;
+                            scoreForThisRound *= 1-secondToAnswer/App.Host.secondsForThisRound;
+                            scoreForThisRound = Math.round(scoreForThisRound * 100) / 100
+                        }
                      }
                      
                      $pScore.text( +$pScore.text() +  scoreForThisRound);
@@ -991,13 +993,13 @@ jQuery(function($){
              distanceScoring : function (playerIndex){
                 var playerAnswer = App.Host.players[playerIndex].currentAnswer;
                 // Replace commas with dots
-                playerAnswer = parseFloat(playerAnswer.replace(/,/g, '.'));
                 var correctAnswer = App.Host.questionData.arrayOfAnswers[0]['value'];
                 var scoreForThisRound = 0;
                 var range = 0.2;
                 console.log('playerAnswer '+playerAnswer); 
                 // checks if the answer is not empty and is a number
                 if ((typeof(playerAnswer) != 'undefined') && (parseInt(playerAnswer) != NaN)){
+                    playerAnswer = parseFloat(playerAnswer.replace(/,/g, '.'));
                     if (playerAnswer <= correctAnswer*(1+range) && playerAnswer >= correctAnswer*(1-range)){
                         // need to find an elegant way to calculate the norm, for now it's done in a basic way
                         var distance = Math.abs(correctAnswer - playerAnswer);
