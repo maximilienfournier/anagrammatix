@@ -50,7 +50,7 @@ function hostCreateNewGame(setupOfGame) {
     connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
-            //process.exit(1);
+            process.exit(1);
         }else{
             console.log('Connected to MySQL server.');
             // Run a test query on MySQL to make sure it works!
@@ -59,11 +59,10 @@ function hostCreateNewGame(setupOfGame) {
             });
 
             createSetOfQuestionFromDB(setupOfGame);
-            
+
             connection.end(function(err) {
             console.log('The SQL connection has been terminated')
             });
-            
         }
     });
 
@@ -90,7 +89,7 @@ function createSetOfQuestionFromDB(setupOfGame){
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
-
+    var QuestionPoolDB = [];
 
     // Building the QuestionPoolDB
     // Create queries
@@ -100,7 +99,7 @@ function createSetOfQuestionFromDB(setupOfGame){
     console.log(queries);
 
     createQuestionPoolDBRound(setupOfGame, 0);
-    
+
 };
 
 /*
@@ -165,7 +164,7 @@ function createQuestionPoolDBRound(setupOfGame, index){
             var nextRound = index + 2;
             var PausingObject = {
                 questionType: 'pausingObject',
-                text: 'Be ready for round ' + nextRound
+                text: 'Time for a break, get prepared for round ' + nextRound +'!'
             };
             QuestionPoolDB.push(PausingObject);
         }
