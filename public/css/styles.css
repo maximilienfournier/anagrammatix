@@ -19,7 +19,8 @@ Yellow      : #FFCC00
 */
 
 html, body {
-    background-color: #59ACFF;
+    /*background-color: #59ACFF;*/
+    background-color: #F8F8F8;
     height: 100%;
     width: 100%;
     margin: 0;
@@ -111,7 +112,8 @@ html, body {
     text-align: center;
     width: 100%;
     font-family: 'Quicksand', sans-serif;
-    color: #FFFFFF;
+    /*color: #FFFFFF;*/
+    color: #0580fc;
     font-weight: 300;
 }
 
@@ -157,7 +159,7 @@ html, body {
     color: #FFFFFF;
     font-weight: 300;
     font-size: 54px;
-    border: 1px dotted white;
+    border: 1px dotted black;
     border-radius: 10px;
     background: transparent;
 }
