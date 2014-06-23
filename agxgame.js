@@ -50,7 +50,8 @@ function hostCreateNewGame(setupOfGame) {
     connection.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
-            process.exit(1);
+            // The followinf line should not be used otherwise it kills the server when no internet connection is available
+            //process.exit(1);
         }else{
             console.log('Connected to MySQL server.');
             // Run a test query on MySQL to make sure it works!
@@ -89,7 +90,7 @@ function createSetOfQuestionFromDB(setupOfGame){
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
-    var QuestionPoolDB = [];
+    //var QuestionPoolDB = [];
 
     // Building the QuestionPoolDB
     // Create queries
