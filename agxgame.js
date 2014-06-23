@@ -59,11 +59,11 @@ function hostCreateNewGame(setupOfGame) {
             });
 
             createSetOfQuestionFromDB(setupOfGame);
-            /*
+            
             connection.end(function(err) {
             console.log('The SQL connection has been terminated')
             });
-            */
+            
         }
     });
 

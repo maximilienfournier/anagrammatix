@@ -208,6 +208,7 @@ jQuery(function($){
 
             // Initialize the fastclick library
             FastClick.attach(document.body);
+
         },
 
         /**
@@ -462,7 +463,7 @@ jQuery(function($){
                 var $newLi = $('<li/>')
                             .val(App.Host.numberOfRounds-1)                   
                             .append($('<button/>').attr('id','deleteRound').html('-').addClass('btn').addClass('addColumn'))
-                            .append($('<a/>').attr('id','roundName').html('Round 1').addClass('roundColumn'))
+                            .append($('<a/>').attr('id','roundName').html('Round ' + App.Host.numberOfRounds).addClass('roundColumn'))
                             
                             .append($('<select/>')
                                 .addClass('btn')
