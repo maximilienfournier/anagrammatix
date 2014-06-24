@@ -70,7 +70,8 @@
     <!-- This screen appears when a user clicks "CREATE" on the Title Screen -->
     <<script id="setup-game-template" type="text/template">
         <div class="setupGameWrapper">
-            <div class="info">Number of players: <input type="text" id="numberOfPlayersInput"></input><a id='messageNaN'></a></div>
+            <div id="setupGameTitle"> Set up your game </div>
+            <div class="info" id="numberOfPlayers">Number of players: <input type="text" id="numberOfPlayersInput"></input><a id='messageNaN'></a></div>
             <div class='info' id='divRoundProperties'></div>
             <button class="btn" id="btnGenerateGame">Generate game</button>
         </div>
@@ -111,6 +112,11 @@
 
     <!-- This is the 'Host' screen. It displays the word for each player to match -->
     <script id="host-game-template" type="text/template">
+        <div id="hostHeader">
+            <div id="roundNumber"></div>
+            <div id="logo"></div>
+            <div id="questionNumber"></div>
+        </div>
         <div id="wordArea">
             <div id="hostWord">5</div>
         </div>

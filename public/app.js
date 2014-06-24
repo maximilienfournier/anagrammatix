@@ -343,6 +343,13 @@ jQuery(function($){
              */
             numberOfRounds :0,
 
+            /*
+             * 
+             */
+            currentRoundNumber : 0,
+            questionNumberInCurrentRound: 0,
+            totalNumberOfQuestionsInCurrentRound:0,
+
             /**
              * Handler for the "Start" button on the Title Screen.
              */
@@ -429,7 +436,7 @@ jQuery(function($){
 
                     )
                     .append($('<li/>')
-                        .append($('<button/>').attr('id','addRound').html('+').addClass('btn').addClass('addColumn'))
+                        .append($('<button/>').attr('id','addRound').html('Add a round').addClass('btn'))
                     )
             
 
@@ -731,8 +738,12 @@ jQuery(function($){
              */
             newQuestion : function(data) {
                 console.log('newQuestion Host');
+                App.Host.questionNumberInCurrentRound+=1;
+
+                // Change the host header
+                $('#questionNumber').html('Question '+App.Host.questionNumberInCurrentRound+'/'+App.Host.totalNumberOfQuestionsInCurrentRound);
+
                 // Insert the new word into the DOM
-                //$('#hostWord').text(data.question);
                 $('#hostWord').text(data.questionText);
                 App.doTextFit('#hostWord');
 
@@ -753,6 +764,8 @@ jQuery(function($){
 
              pausingGame : function(data){
                 console.log('pausingGame');
+                App.Host.questionNumberInCurrentRound = 0;
+
                 // Make the countdown disappear
                 document.getElementById('countDownPerRound').innerHTML='';
                 // Text to be diplayed
@@ -780,6 +793,13 @@ jQuery(function($){
               */
             roundPresentation: function(data){
                 console.log('Round presentation');
+                App.Host.currentRoundNumber +=1;
+                App.Host.totalNumberOfQuestionsInCurrentRound = data.setupOfGame.numberOfQuestions;
+
+                // Display the number of the round in the host header
+                $('#roundNumber').html('Round '+App.Host.currentRoundNumber);
+                $('#questionNumber').html('');
+
                 // Make the countdown disappear
                 document.getElementById('countDownPerRound').innerHTML='';
 
@@ -861,7 +881,7 @@ jQuery(function($){
              endOfPause : function(){
                 console.log('endOfPause');
                 // Deletes the 'Continue' button displayed during the pause
-                $('#pausingArea').html('');
+                $('#divBtnContinueGame').html('');
                 App.currentRound += 1;
 
                 var data = {
@@ -1347,7 +1367,7 @@ jQuery(function($){
 
             pausingGame : function(data){
                 console.log('pausingGame');
-                var $pauseText = $('<a/>').attr('id','pausingText').text('Pausing game. Have a drink and come back!')
+                var $pauseText = $('<div/>').attr('id','pausingText').text('Pausing game. Have a drink and come back!').addClass('info')
                 $('#gameArea').html($pauseText);
             },
 
@@ -1357,7 +1377,7 @@ jQuery(function($){
 
             roundPresentation: function(data){
                 console.log('roundPresentation');
-                var $presentationText = $('<a/>').attr('id','presentationText').text('Next round is about to begin. You better be ready!')
+                var $presentationText = $('<div/>').attr('id','presentationText').html('Round is about to begin. You better be ready!').addClass('info')
                 $('#gameArea').html($presentationText);
             },
             /**
@@ -1419,10 +1439,8 @@ jQuery(function($){
             newQuestionOpenQuestion : function(data){
                 var $list = $('<ul/>').attr('id','ulAnswers');
 
-                // Insert a list item for each word in the word list
-                // received from the server.
                 
-                $list                                //  <ul> </ul>
+                $list                                
                     .append($('<li/>') 
                         .append($('<input/>')
                             .attr('id','openQuestionText')
