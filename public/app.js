@@ -1367,7 +1367,7 @@ jQuery(function($){
 
             pausingGame : function(data){
                 console.log('pausingGame');
-                var $pauseText = $('<div/>').attr('id','pausingText').text('Pausing game. Have a drink and come back!').addClass('info')
+                var $pauseText = $('<div/>').attr('id','pausingText').text('Pausing game. <br>Have a drink and come back!').addClass('info')
                 $('#gameArea').html($pauseText);
             },
 
@@ -1377,7 +1377,7 @@ jQuery(function($){
 
             roundPresentation: function(data){
                 console.log('roundPresentation');
-                var $presentationText = $('<div/>').attr('id','presentationText').html('Round is about to begin. You better be ready!').addClass('info')
+                var $presentationText = $('<div/>').attr('id','presentationText').html('Round is about to begin. <br>You better be ready!').addClass('info')
                 $('#gameArea').html($presentationText);
             },
             /**
