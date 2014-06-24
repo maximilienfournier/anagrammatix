@@ -46,6 +46,14 @@ function hostCreateNewGame(setupOfGame) {
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
+    // Create a unique Socket.IO Room
+    var thisGameId = ( Math.random() * 100000 ) | 0;
+    // Verifies that the gameId is not already used
+    while(QuestionPoolDB[thisGameId] != undefined){
+        thisGameId = ( Math.random() * 100000 ) | 0;
+    }
+    QuestionPoolDB[thisGameId]= [];
+
     // Check connection to MySQL
     connection.connect(function(err){
         if(err){
@@ -59,7 +67,7 @@ function hostCreateNewGame(setupOfGame) {
                 console.log('This is a test query from MySQL:'+rows[0].question_text)
             });
 
-            createSetOfQuestionFromDB(setupOfGame);
+            createSetOfQuestionFromDB(setupOfGame, thisGameId);
 
             connection.end(function(err) {
             console.log('The SQL connection has been terminated')
@@ -67,15 +75,11 @@ function hostCreateNewGame(setupOfGame) {
         }
     });
 
-    // Create a unique Socket.IO Room
-    var thisGameId = ( Math.random() * 100000 ) | 0;
     // Return the Room ID (gameId) and the socket ID (mySocketId) to the browser client
     this.emit('newGameCreated', {gameId: thisGameId, mySocketId: this.id});
 
     // Join the Room and wait for the players
     this.join(thisGameId.toString());
-
-
     
 };
 
@@ -83,7 +87,7 @@ function hostCreateNewGame(setupOfGame) {
  * Creates a set of question from DB
  */
 
-function createSetOfQuestionFromDB(setupOfGame){
+function createSetOfQuestionFromDB(setupOfGame, gameId){
     var connection = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
@@ -92,6 +96,9 @@ function createSetOfQuestionFromDB(setupOfGame){
     });
     //var QuestionPoolDB = [];
 
+    // Reset the queries array
+    queries = [];
+
     // Building the QuestionPoolDB
     // Create queries
     for(var j = 0; j<setupOfGame.length; j++){
@@ -99,14 +106,14 @@ function createSetOfQuestionFromDB(setupOfGame){
     }
     console.log(queries);
 
-    createQuestionPoolDBRound(setupOfGame, 0);
+    createQuestionPoolDBRound(setupOfGame, gameId, 0);
 
 };
 
 /*
  * Creates the question pool for the round "index"
  */
-function createQuestionPoolDBRound(setupOfGame, index){
+function createQuestionPoolDBRound(setupOfGame, gameId, index){
     console.log('createQuestionPoolDBRound '+ index);
     console.log(queries[index]);
     var connection = mysql.createConnection({
@@ -118,20 +125,20 @@ function createQuestionPoolDBRound(setupOfGame, index){
     connection.query(queries[index], function(err, rows, fields){
         // Number of questions in the round, dealing with the case when not enough questions to create the round
         // That could be enhanced by selecting questions that are related to the wanted criterias
-        console.log("setupOfGame " + setupOfGame);
+        console.log("setupOfGame " + setupOfGame[index]);
         //console.log(rows);
         console.log('setupOfGame.numberOfQuestions '+ setupOfGame[index].numberOfQuestions);
-        if (rows.length<setupOfGame[index].numberOfQuestions){
-            var numberOfQuestions = rows.length;
-        }
-        else{
-            var numberOfQuestions = parseInt(setupOfGame[index].numberOfQuestions);
-        }
-        console.log('numberOfQuestions ' + numberOfQuestions);
+        console.log('setupOfGame.difficulty '+ setupOfGame[index].difficulty);
+        console.log('setupOfGame.tag '+ setupOfGame[index].tag);
+        console.log('setupOfGame.questionType '+ setupOfGame[index].questionType);
+        console.log('setupOfGame.speedScoring '+ setupOfGame[index].speedScoring);
+
+        setupOfGame[index].numberOfQuestions = Math.min(parseInt(setupOfGame[index].numberOfQuestions), rows.length);
+        console.log('Actual number of questions: '+setupOfGame[index].numberOfQuestions);
 
         // Generating random indexes to pick up random questions from the one selected in the DB
         var arr = []
-        while(arr.length < numberOfQuestions){
+        while(arr.length < setupOfGame[index].numberOfQuestions){
           var randomNumber=Math.round(Math.random()*(rows.length-1))
           var found=false;
           for(var i=0;i<arr.length;i++){
@@ -143,12 +150,20 @@ function createQuestionPoolDBRound(setupOfGame, index){
           if(!found)arr[arr.length]=randomNumber;
         }
 
+        // Screen to announce the properties of the round
+        var RoundPresentation = {
+            questionType: 'roundPresentation',
+            roundIndex: index + 1,
+            setupOfGame: setupOfGame[index]
+        };
+
+        QuestionPoolDB[gameId].push(RoundPresentation);
+
         // Creates the questions and add them to the QuestionPoolDB object
         console.log('Beginning of questions');
-        for(var i = 0; i<numberOfQuestions;i++){
+        for(var i = 0; i<setupOfGame[index].numberOfQuestions;i++){
             var question = createQuestionObject(rows[arr[i]]);
             // Adding speed scoring if necessary
-            //console.log('speedScoring for round '+ index + ' ' + setupOfGame[index].speedScoring);
             if (setupOfGame[index].speedScoring === true){
                 question.speedScoring = true;
             }
@@ -156,7 +171,7 @@ function createQuestionPoolDBRound(setupOfGame, index){
                 question.speedScoring = false;
             }
             console.log(question);
-            QuestionPoolDB.push(question);
+            QuestionPoolDB[gameId].push(question);
         }
         console.log('End of questions');
 
@@ -164,15 +179,14 @@ function createQuestionPoolDBRound(setupOfGame, index){
         if (index < setupOfGame.length-1){
             var nextRound = index + 2;
             var PausingObject = {
-                questionType: 'pausingObject',
-                text: 'Time for a break, get prepared for round ' + nextRound +'!'
+                questionType: 'pausingObject'
             };
-            QuestionPoolDB.push(PausingObject);
+            QuestionPoolDB[gameId].push(PausingObject);
         }
         
 
         if(index < queries.length-1){
-            createQuestionPoolDBRound(setupOfGame, index+1);
+            createQuestionPoolDBRound(setupOfGame, gameId, index+1);
         }
     });
 };
@@ -267,12 +281,12 @@ function hostStartGame(gameId) {
  */
 function hostNextRound(data) {
 	console.log('Asked for a new round');
-    if (QuestionPoolDB.length === 0){
+    if (QuestionPoolDB[data.gameId].length === 0){
         // No connection to the DB
         var limit = QuestionPool.length;
     }
     else{
-        var limit = QuestionPoolDB.length;
+        var limit = QuestionPoolDB[data.gameId].length;
     }
     if(data.round < limit ){
     	console.log('Not at the end of the pool, creating a new set of words.')
@@ -411,7 +425,7 @@ TOUCHI'S QUESTIONS
  * @param gameId The room identifier
  */
 function sendQuestion(QuestionPoolIndex, gameId) {
-    var data = getQuestionData(QuestionPoolIndex);
+    var data = getQuestionData(QuestionPoolIndex, gameId);
     io.sockets.in(data.gameId).emit('newQuestionData', data);
 }
 
@@ -423,13 +437,13 @@ function sendQuestion(QuestionPoolIndex, gameId) {
  * @returns {{round: *, word: *, answer: *, list: Array}}
 */
 
-function getQuestionData(i){
-    if (QuestionPoolDB.length === 0){
+function getQuestionData(i, gameId){
+    if (QuestionPoolDB[gameId].length === 0){
         // No connection to the DB, using the hard coded questions
         var question = QuestionPool[i];
     }
     else{
-        var question = QuestionPoolDB[i];
+        var question = QuestionPoolDB[gameId][i];
     }    
     question.round = i;
     return question;

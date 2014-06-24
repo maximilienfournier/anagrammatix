@@ -116,7 +116,12 @@ jQuery(function($){
             App.currentRound = data.round;
             console.log(data);
             if (data.questionType === 'pausingObject'){
+                // Pause the game at the end of the round
                 App[App.myRole].pausingGame(data);
+            }
+            else if (data.questionType === 'roundPresentation'){
+                // Display the screen to present the round's properties
+                App[App.myRole].roundPresentation(data);
             }
             else{
                 // Change the word for the Host and Player
@@ -244,6 +249,7 @@ jQuery(function($){
             App.$doc.on('click','.btnPriorityAnswerReset', App.Player.onPlayerClickPriorityReset);
             App.$doc.on('click','.btnPriorityAnswerSubmit', App.Player.onPlayerClickPrioritySubmit);
             App.$doc.on('click','.btnContinueGame', App.Host.endOfPause);
+            App.$doc.on('click','.btnBeginRound', App.Host.endOfRoundPresentation);
             App.$doc.on('click','#addRound', App.Host.addRound);
             App.$doc.on('click','#deleteRound', App.Host.deleteRound);
             
@@ -563,6 +569,7 @@ jQuery(function($){
                         console.log($(this).find('#roundNumberOfQuestions').val());
                         console.log($(this).find('#roundDifficulty').val());
                         console.log($(this).find('#roundSpeedScoring').is(':checked'));
+                        console.log($(this).find('#roundTag').val());
                     }
                 });
                 console.log(setupOfGame);
@@ -746,27 +753,108 @@ jQuery(function($){
 
              pausingGame : function(data){
                 console.log('pausingGame');
-                $('#hostWord').text(data.text);
+                // Make the countdown disappear
                 document.getElementById('countDownPerRound').innerHTML='';
+                // Text to be diplayed
+                var text = "Time to take a break!";
+                $('#hostWord').text(text);
                 App.doTextFit('#hostWord');
                 
-                var $par = $('<p/>').attr('id','pausingP');
-
-                $par.append($('<button/>')   
+                // Creates a button to continue game
+                
+                var $btnContinueGame = $('<button/>')   
                             .addClass('btn')        
                             .addClass('btnContinueGame')
                             .attr('id','btnContinueGame')
-                            .val('Continue the game')          
-                            .html('Continue the game')
-                    )
-                    
+                            .html('Going to the next round!')
+                
                 // Insert the list onto the screen.
-                $('#pausingArea').html($par);
+                $('#divBtnContinueGame').html($btnContinueGame);
 
                 App.Host.questionData = data;
                 App.Host.currentRound = data.round;
              },
 
+             /**
+              * Function called at the beginning of the round to present its properties
+              */
+            roundPresentation: function(data){
+                console.log('Round presentation');
+                // Make the countdown disappear
+                document.getElementById('countDownPerRound').innerHTML='';
+
+                // Text to be diplayed
+                var text = "Get ready for round " + data.roundIndex +"!";
+                $('#hostWord').text(text);
+                App.doTextFit('#hostWord');
+
+                // Display the properties of the round and a button to begin next round
+                var $ulProperties = $('<ul/>').attr('id','ulProperties');
+                
+                if (data.setupOfGame.tag === 'random'){var tag = 'Mixed themes';}
+                else{var tag = data.setupOfGame.tag.charAt(0).toUpperCase() + data.setupOfGame.tag.slice(1);}
+
+                console.log(data.setupOfGame.difficulty);
+                if(data.setupOfGame.difficulty === 'mix'){var difficulty = 'Mixed difficulties';}
+                else{var difficulty = data.setupOfGame.difficulty.charAt(0).toUpperCase() + data.setupOfGame.difficulty.slice(1);}
+
+                switch(data.setupOfGame.questionType){
+                    case 'random':
+                        var questionType = 'Mixed question types';
+                        break;
+                    case 'multipleChoiceSingleAnswer':
+                        var questionType = 'Mutliple choice questions';
+                        break;
+                    case 'openQuestion':
+                        var questionType = 'Open questions';
+                        break;
+                    case 'priorityQuestion':
+                        var questionType = 'Ranking questions';
+                        break;
+                    default:
+                        var questionType = 'Unkown question type!';
+                }
+                
+                if(data.setupOfGame.speedScoring){var speedScoring = 'Speed scoring';}
+                else{var speedScoring = 'No speed scoring';}
+
+                var numberOfQuestions = data.setupOfGame.numberOfQuestions + ' questions';
+
+                $ulProperties
+                            .append($('<li/>').html(numberOfQuestions))
+                            .append($('<li/>').html(tag))
+                            .append($('<li/>').html(questionType))
+                            .append($('<li/>').html(difficulty))
+                            .append($('<li/>').html(speedScoring))
+
+                var $buttonBeginNextRound = $('<button/>').addClass('btn').addClass('btnBeginRound').attr('id','btnBeginRound').html('Begin this round!');
+                
+                $('#roundProperties').html($ulProperties);
+                document.getElementById("roundProperties").style.border = "solid";
+                $('#divBtnBeginGame').html($buttonBeginNextRound);
+
+            },
+
+            /**
+             * Function called at the end of the  screen presenting the following round
+             */
+            endOfRoundPresentation : function(){
+                console.log('endOfRoundPresentation');
+                $('#roundProperties').html('');
+                $('#divBtnBeginGame').html('');
+                document.getElementById("roundProperties").style.border = "none";
+                App.currentRound += 1;
+
+                var data = {
+                    gameId : App.gameId,
+                    round : App.currentRound
+                }
+
+                // Notify the server to start the next round.
+                IO.socket.emit('hostNextRound',data);
+               
+            },
+ 
              /**
               * Function that is called to end the pause.
               */
@@ -1263,6 +1351,15 @@ jQuery(function($){
                 $('#gameArea').html($pauseText);
             },
 
+            /*
+             * Function called for the round's presentation
+             */
+
+            roundPresentation: function(data){
+                console.log('roundPresentation');
+                var $presentationText = $('<a/>').attr('id','presentationText').text('Next round is about to begin. You better be ready!')
+                $('#gameArea').html($presentationText);
+            },
             /**
              * Show the list of words for the current round.
              * @param data{{round: *, word: *, answer: *, list: Array}}
