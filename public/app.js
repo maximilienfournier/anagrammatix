@@ -908,8 +908,7 @@ jQuery(function($){
 					
 					// Note which player has just answered and saves the answer
 					for (var i=0; i<App.Host.numPlayersInRoom; i++){
-						if (App.Host.players[i].mySocketId === data.playerId){
-                            console.log('Player ' + data.playerId + ' answered ' + data.answer);
+						if (App.Host.players[i].playerName === data.playerName){
 							App.Host.players[i].hasAlreadyAnswered = true;
                             App.Host.players[i].timeOfAnswer = data.timeOfAnswer;
                             /*
@@ -1295,6 +1294,7 @@ jQuery(function($){
                 var data = {
                     gameId: App.gameId,
                     playerId: App.mySocketId,
+                    playerName: App.Player.myName,
                     answer: answer,
                     round: App.currentRound,
                     timeOfAnswer: new Date().getTime()
@@ -1311,6 +1311,7 @@ jQuery(function($){
                 var data = {
                     gameId: App.gameId,
                     playerId: App.mySocketId,
+                    playerName: App.Player.myName,
                     answer: answer,
                     round: App.currentRound,
                     timeOfAnswer: new Date().getTime()
@@ -1561,6 +1562,7 @@ jQuery(function($){
                 var data = {
                     gameId: App.gameId,
                     playerId: App.mySocketId,
+                    playerName: App.Player.myName,
                     answer: answer,
                     round: App.currentRound,
                     timeOfAnswer: new Date().getTime()

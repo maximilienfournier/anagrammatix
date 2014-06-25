@@ -40,7 +40,7 @@ exports.initGame = function(sio, socket){
  * The 'START' button was clicked and 'hostCreateNewGame' event occurred.
  */
 function hostCreateNewGame(setupOfGame) {
-    var connection = mysql.createConnection({
+    var connectionTest = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
       password : 'dD2!mQ5*',
@@ -55,7 +55,7 @@ function hostCreateNewGame(setupOfGame) {
     QuestionPoolDB[thisGameId]= [];
 
     // Check connection to MySQL
-    connection.connect(function(err){
+    connectionTest.connect(function(err){
         if(err){
             console.log('Error connecting to MySQL server: ' + err.code + '.');
             // The followinf line should not be used otherwise it kills the server when no internet connection is available
@@ -63,18 +63,16 @@ function hostCreateNewGame(setupOfGame) {
         }else{
             console.log('Connected to MySQL server.');
             // Run a test query on MySQL to make sure it works!
-            connection.query('SELECT * FROM questions WHERE question_id = 1', function(err, rows, fields){
-                console.log('This is a test query from MySQL:'+rows[0].question_text)
-            });
 
-            createSetOfQuestionFromDB(setupOfGame, thisGameId);
-
-            connection.end(function(err) {
-            console.log('The SQL connection has been terminated')
+            connectionTest.end(function(err) {
+                console.log('The SQL connection has been terminated in test');
             });
+              
         }
     });
 
+    createSetOfQuestionFromDB(setupOfGame, thisGameId); 
+    
     // Return the Room ID (gameId) and the socket ID (mySocketId) to the browser client
     this.emit('newGameCreated', {gameId: thisGameId, mySocketId: this.id});
 
@@ -88,12 +86,13 @@ function hostCreateNewGame(setupOfGame) {
  */
 
 function createSetOfQuestionFromDB(setupOfGame, gameId){
-    var connection = mysql.createConnection({
+    /*var connection = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
+    */
     //var QuestionPoolDB = [];
 
     // Reset the queries array
@@ -116,12 +115,14 @@ function createSetOfQuestionFromDB(setupOfGame, gameId){
 function createQuestionPoolDBRound(setupOfGame, gameId, index){
     console.log('createQuestionPoolDBRound '+ index);
     console.log(queries[index]);
+    
     var connection = mysql.createConnection({
       host     : 'sql5.freemysqlhosting.net',
       user     : 'sql543533',
       password : 'dD2!mQ5*',
       database : 'sql543533',
     });
+    
     connection.query(queries[index], function(err, rows, fields){
         // Number of questions in the round, dealing with the case when not enough questions to create the round
         // That could be enhanced by selecting questions that are related to the wanted criterias
@@ -160,7 +161,6 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
         QuestionPoolDB[gameId].push(RoundPresentation);
 
         // Creates the questions and add them to the QuestionPoolDB object
-        console.log('Beginning of questions');
         for(var i = 0; i<setupOfGame[index].numberOfQuestions;i++){
             var question = createQuestionObject(rows[arr[i]]);
             // Adding speed scoring if necessary
@@ -170,10 +170,9 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
             else{
                 question.speedScoring = false;
             }
-            console.log(question);
+            //console.log(question);
             QuestionPoolDB[gameId].push(question);
         }
-        console.log('End of questions');
 
         // Adding a pause between each round
         if (index < setupOfGame.length-1){
@@ -184,11 +183,17 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
             QuestionPoolDB[gameId].push(PausingObject);
         }
         
+        connection.end(function(err) {
+            console.log('The SQL connection has been terminated');
+        });
 
         if(index < queries.length-1){
             createQuestionPoolDBRound(setupOfGame, gameId, index+1);
         }
     });
+    
+    
+    
 };
  
 /*
