@@ -20,6 +20,7 @@ exports.initGame = function(sio, socket){
     gameSocket.on('hostRoomFull', hostPrepareGame);
     gameSocket.on('hostCountdownFinished', hostStartGame);
     gameSocket.on('hostNextRound', hostNextRound);
+    gameSocket.on('hostDisplayAnswer', playersDisplayAnswer);
 
     // Player Events
     gameSocket.on('playerJoinGame', playerJoinGame);
@@ -393,6 +394,13 @@ function playerCannotJoinGame(data){
 
 }
 
+/**
+ * Function called to duisplay the correct answer on the players' screens
+ */
+function playersDisplayAnswer(data){
+    console.log('playersDisplayAnswer');
+    io.sockets.in(data.gameId).emit('playersDisplayAnswer', data);
+}
 /**
  * A player has tapped a word in the word list.
  * @param data gameId

@@ -31,6 +31,7 @@ jQuery(function($){
             IO.socket.on('beginNewGame', IO.beginNewGame );
             // IO.socket.on('newWordData', IO.onNewWordData);
             IO.socket.on('newQuestionData', IO.onNewQuestionData);
+            IO.socket.on('playersDisplayAnswer', IO.onplayersDisplayAnswer);
             IO.socket.on('hostCheckAnswer', IO.hostCheckAnswer);
             IO.socket.on('gameOver', IO.gameOver);
             IO.socket.on('error', IO.error );
@@ -130,16 +131,17 @@ jQuery(function($){
             
         },
 
-        /*
-        // Event on NewWordData
-        onNewWordData : function(data) {
-            // Update the current round
-            App.currentRound = data.round;
+        /**
+         * Called at the end of the round to display the correct answer
+         */
 
-            // Change the word for the Host and Player
-            App[App.myRole].newWord(data);
+        onplayersDisplayAnswer : function(data){
+            console.log('onHostDisplayAnswer');
+            if(App.myRole === 'Player'){
+                console.log('onHostDisplayAnswer');
+                App[App.myRole].displayAnswer(data);
+            }
         },
-        */
 
 
         /**
@@ -252,11 +254,6 @@ jQuery(function($){
             App.$doc.on('click','.btnBeginRound', App.Host.endOfRoundPresentation);
             App.$doc.on('click','#addRound', App.Host.addRound);
             App.$doc.on('click','#deleteRound', App.Host.deleteRound);
-            
-            
-            
-            
-            
             
         },
 
@@ -961,17 +958,15 @@ jQuery(function($){
 			 */
 			 
 			 endThisRound : function(){
-                // Delete the display of the answers
-                $('#hostAnswers').html('');
 			 	// Stops the timer for this round
 			 	clearInterval(App.Host.countDownVariable);
 			 	
+                // Clear the countdown display
+                $('#countDownPerRound').html('');
+
 			 	// Advance the round
 				App.currentRound += 1;
 				
-               // console check
-                console.log('calculate scores called');
-
 				// Calculates scores
 				App.Host.calculateScores();
 				
@@ -988,9 +983,16 @@ jQuery(function($){
 				
 				// Stops the timeout
 				clearTimeout(App.Host.timeOut);
+                console.log('The host if gonna emit the signal hostDisplayAnswer');
+                IO.socket.emit('hostDisplayAnswer', data);
 				
-				// Notify the server to start the next round.
-				IO.socket.emit('hostNextRound',data);
+				// Notify the server to start the next round after 3 seconds.
+                setTimeout(function(){
+                    IO.socket.emit('hostNextRound',data);
+                    // Delete the display of the answers
+                    $('#hostAnswers').html('');
+                },5000)
+				
 			 },
 			 
 			 
@@ -1425,6 +1427,8 @@ jQuery(function($){
                 console.log('Player newQuestion called');
                 console.log(data.questionType);
                 App.Player.priorityAnswerCurrentRanking = 0;
+                App.Player.questionData = data;
+
 
                 // Switch to display the appropriate items on the player's screen
                 switch(data.questionType){
@@ -1611,6 +1615,31 @@ jQuery(function($){
                 }
                 console.log(answer);
                 IO.socket.emit('playerAnswer',data);
+            },
+
+            /**
+             * Function called to display the correct answer at the end of the round
+             */
+
+            displayAnswer: function(data){
+                console.log('displayAnswer');
+                switch(App.Player.questionData.questionType){
+                    case 'multipleChoiceSingleAnswer':
+                        for (var i=0; i<App.Player.questionData.arrayOfAnswers.length; i++){
+                            if(App.Player.questionData.arrayOfAnswers[i]['bool']){
+                                // Find the corresponding item and change its css
+                                var value = App.Player.questionData.arrayOfAnswers[i]['value'];
+                                // Setting background to green
+                                $('#ulAnswers').find("[value='"+value+"']").css('background-color','#008000');
+                            }
+                        }
+                        break;
+                    default:
+                        console.log('Unkown question type!!!');
+                }
+                
+                    
+                
             },
 
             /**
