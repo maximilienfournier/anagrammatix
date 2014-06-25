@@ -100,7 +100,6 @@ html, body {
     font-weight: 400;
     position: absolute;
     text-align: center;
-    height: 50%;
     width: 96%;
     margin: auto;
     bottom: 0;
@@ -344,11 +343,28 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    text-align:center;
 }
 
 #ulAnswers li {
     width: 100%;
     height: 16.6%;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 4px;
+    padding-top: 4px;
+    text-align: center;
+}
+
+#ulAnswers li div{
+    width: auto;
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    font-size: 2em;
+    margin-right: 30%;
+    margin-left: 30%;
+    border: 1px solid black;
 }
 
 #ulAnswers input {
@@ -392,36 +408,43 @@ html, body {
     font-size: 3em;
     color: #FFFFFF;
 }
+#rankingSubmitDelete{
+    width: 100%;
+    display: inline-block;
+}
 .btnPriorityAnswer{
     width: 70%;
     border-bottom: 1px dotted white;
     font-weight: 400;
-    font-size: 3em;
+    font-size: 2em;
     color: #FFFFFF;
     background-color: #59ACFF;
 }
 .btnPriorityAnswerNumber{
-    width: 30%;
+    width: 27%;
     border-bottom: 1px dotted white;
     font-weight: 400;
-    font-size: 3em;
+    font-size: 2em;
     color: #FFFFFF;
     background-color: #59ACFF;
+    margin-left: 1%;
 }
 .btnPriorityAnswerSubmit{
-    width: 50%;
+    width: 48%;
     border-bottom: 1px dotted white;
     border-right: 1px dotted white;
     font-weight: 400;
-    font-size: 3em;
+    font-size: 2em;
     color: #FFFFFF;
+    margin-right: 1%;
 }
 .btnPriorityAnswerReset{
-    width: 50%;
+    width: 48%;
     border-bottom: 1px dotted white;
     font-weight: 400;
-    font-size: 3em;
+    font-size: 2em;
     color: #FFFFFF;
+    padding-left: 2px;
 }
 
 #openQuestionText{
@@ -468,11 +491,11 @@ html, body {
     background-color: #0580fc;
     color: #000000;
     width: 100%;
-    /*height: 50px;*/
     font-size: 35px;
     border-width: 2px;
     border-radius: 3px;
-    margin-top: 10%;
+    margin-top: 60px;
+    text-align: center;
 }
 
 #hostHeader div{
@@ -482,11 +505,12 @@ html, body {
 
 #roundNumber{
     text-align:left;
-    margin-left: 10px;
 }
+
 #questionNumber{
     text-align:right;
 }
+
 #logo{
     text-align:center;
 }
@@ -494,9 +518,16 @@ html, body {
 #wordArea {
     font-family: 'Quicksand', sans-serif;
     font-weight: 400;
-    position: absolute;
+    /*position: absolute;
     height: 50%;
     width: 80%;
+    */
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 50px;
+    position: relative;
+    height: auto;
     margin: auto;
     bottom: 0;
     left: 0;
@@ -507,6 +538,7 @@ html, body {
 #hostWord {
     height: 100%;
     width: 100%;
+    margin-bottom: 20px;
 }
 
 #hostWord h2, #btnPlayerRestart h3 {
@@ -523,9 +555,12 @@ html, body {
     font-family: 'Quicksand', sans-serif;
     font-size: 100px;
     max-font-size: 100px;
-    position:fixed;
+    /*position:fixed;
     right: 100px;
     bottom: 100px;
+    */
+    position: relative;
+    text-align: center;
     
 }
 
@@ -576,7 +611,6 @@ html, body {
 #pausingArea{
     font-family: 'Quicksand', sans-serif;
     position: relative;
-    margin-top: 25%;
     width:100%;
     height: auto;
 }
@@ -592,7 +626,6 @@ html, body {
 #roundPresentation{
     font-family: 'Quicksand', sans-serif;
     position: relative;
-    margin-top: 25%;
     width:100%;
 }
 

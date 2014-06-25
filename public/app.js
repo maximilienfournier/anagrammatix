@@ -124,7 +124,7 @@ jQuery(function($){
                 App[App.myRole].roundPresentation(data);
             }
             else{
-                // Change the word for the Host and Player
+                // Sending the question to the Host and the player
                 App[App.myRole].newQuestion(data);
             }
             
@@ -400,7 +400,6 @@ jQuery(function($){
                                 .addClass('btn')
                                 .addClass('typeColumn')
                                 .attr('id','roundQuestionType')
-                                .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
                                 .append($('<option/>').val('openQuestion').html('Open answer'))
                                 .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
@@ -491,7 +490,6 @@ jQuery(function($){
                                 .addClass('btn')
                                 .addClass('typeColumn')
                                 .attr('id','roundQuestionType')
-                                .append($('<option/>').val('random').html('Random'))
                                 .append($('<option/>').val('multipleChoiceSingleAnswer').html('Multi choice'))
                                 .append($('<option/>').val('openQuestion').html('Open answer'))
                                 .append($('<option/>').val('priorityQuestion').html('Ranking questions'))
@@ -744,8 +742,11 @@ jQuery(function($){
                 $('#questionNumber').html('Question '+App.Host.questionNumberInCurrentRound+'/'+App.Host.totalNumberOfQuestionsInCurrentRound);
 
                 // Insert the new word into the DOM
-                $('#hostWord').text(data.questionText);
+                $('#hostWord').html(data.questionText);
                 App.doTextFit('#hostWord');
+
+                //Displaying answers on the host screen
+                App.Host.displayAnswers(data);
 
                 // Update the data for the current round
                 //App.Host.currentCorrectAnswer = data.answer;
@@ -757,6 +758,26 @@ jQuery(function($){
                 App.Host.timeBeginningQuestion = new Date().getTime();;
                 //App.Host.countDownForRound(10000);
             },
+
+            /**
+             * Display the answers on the Host's screen
+             */
+             displayAnswers: function(data){
+                if ((data.questionType === 'multipleChoiceSingleAnswer') || (data.questionType === 'priorityQuestion')){
+
+                    var $list = $('<ul/>').attr('id','ulAnswers');
+                    //$.each(data.list, function(){
+                    $.each(data.arrayOfAnswers, function(){
+                        $list                                //  <ul> </ul>
+                            .append( $('<li/>')
+                                .append($('<div/>').html(this['value']))
+                            )             
+                    });     
+
+                    // Insert the list onto the screen.
+                    $('#hostAnswers').html($list);
+                }
+             },
 
             /**
              * Function called to pause the game between sets of questions
@@ -940,6 +961,8 @@ jQuery(function($){
 			 */
 			 
 			 endThisRound : function(){
+                // Delete the display of the answers
+                $('#hostAnswers').html('');
 			 	// Stops the timer for this round
 			 	clearInterval(App.Host.countDownVariable);
 			 	
@@ -1137,7 +1160,7 @@ jQuery(function($){
                 var playerAnswerText = App.Host.players[playerIndex].currentAnswer;
                 if(typeof(playerAnswerText) != 'undefined'){
                     for (var i = 0; i < correctAnswer.length; i++) {
-                        var word = App.Host.questionData.arrayOfAnswers[i]['value'];
+                        var word = App.Host.questionData.correctOrderArrayOfAnswers[i]['value'];
                         playerAnswer[i] = playerAnswerText.indexOf(word);
                     }
                 } 
@@ -1286,6 +1309,19 @@ jQuery(function($){
             onPlayerAnswerClick: function() {
                 console.log('Clicked Answer Button');
                 var $btn = $(this);      // the tapped button
+
+                // Setting all buttons to original border style
+                var $ul = $btn.parent().parent();
+                console.log($ul.children());
+                $ul.children().each(function() {
+                    $($(this).children()).css('border-style','hidden');
+                });
+
+                // Setting this button border to black and visible
+                $btn.css('border-style','solid');
+                $btn.css('border-width','10px');
+                $btn.css('border-color','#000000');
+                
                 var answer = $btn.val(); // The tapped word
                 console.log(answer);
 
@@ -1368,7 +1404,7 @@ jQuery(function($){
 
             pausingGame : function(data){
                 console.log('pausingGame');
-                var $pauseText = $('<div/>').attr('id','pausingText').text('Pausing game. <br>Have a drink and come back!').addClass('info')
+                var $pauseText = $('<div/>').attr('id','pausingText').html('Pausing game. <br>Have a drink and come back!').addClass('info')
                 $('#gameArea').html($pauseText);
             },
 
@@ -1417,9 +1453,6 @@ jQuery(function($){
                 // Create an unordered list element
                 var $list = $('<ul/>').attr('id','ulAnswers');
 
-                // Insert a list item for each word in the word list
-                // received from the server.
-
                 //$.each(data.list, function(){
                 $.each(data.arrayOfAnswers, function(){
                     $list                                //  <ul> </ul>
@@ -1461,8 +1494,14 @@ jQuery(function($){
             },
 
             newQuestionPriorityQuestion : function(data){
-                var answersShuffled = App.shuffle(data.arrayOfAnswers);
+                //var answersShuffled = App.shuffle(data.arrayOfAnswers);
                 var $list = $('<ul/>').attr('id','ulAnswers');
+
+                console.log('New question priority answer');
+                console.log(data.arrayOfAnswers);
+
+                console.log('Correct order of answers');
+                console.log(data.correctOrderArrayOfAnswers);
 
                 $.each(data.arrayOfAnswers, function(){
                     $list                                //  <ul> </ul>
@@ -1484,17 +1523,19 @@ jQuery(function($){
                 
                 $list
                     .append($('<li/>')
-                        .append($('<button/>')
-                            .addClass('btnPriorityAnswerSubmit')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
-                            .val('Submit')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
-                            .html('Submit')
-                        )
-                        .append($('<button/>')
-                            .addClass('btnPriorityAnswerReset')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
-                            .val('Reset')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
-                            .html('Reset')
+                        .append($('<div/>').attr('id','rankingSubmitDelete')
+                            .append($('<button/>')
+                                .addClass('btnPriorityAnswerSubmit')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                                .val('Submit')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
+                                .html('Submit')
+                            )
+                            .append($('<button/>')
+                                .addClass('btnPriorityAnswerReset')   //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                                .addClass('btn')         //  <ul> <li> <button class='btnPriorityAnswerSubmit'> </button> </li> </ul>
+                                .val('Reset')               //  <ul> <li> <button class='btnPriorityAnswerSubmit' value='Reset'> </button> </li> </ul>
+                                .html('Reset')
+                            )
                         )
                     )
 
@@ -1556,6 +1597,7 @@ jQuery(function($){
                         answer[parseInt(elems[i].innerHTML)-1] = elems[i].id;
                     }
                 }
+                console.log(answer);
 
                 // Send the player info and tapped word to the server so
                 // the host can check the answer.
@@ -1639,7 +1681,8 @@ jQuery(function($){
         /**
          * Function that shuffles an array
          */
-        shuffle: function(o){
+        shuffle : function(o){
+            o = o.slice(0)
             for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
             return o;
         },

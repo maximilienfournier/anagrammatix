@@ -431,7 +431,20 @@ TOUCHI'S QUESTIONS
  */
 function sendQuestion(QuestionPoolIndex, gameId) {
     var data = getQuestionData(QuestionPoolIndex, gameId);
+    if (data.questionType === 'priorityQuestion'){
+        data.correctOrderArrayOfAnswers = data.arrayOfAnswers.slice(0);
+        data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
+    }
     io.sockets.in(data.gameId).emit('newQuestionData', data);
+}
+
+ /**
+ * Function that shuffles an array
+ */
+function shuffle(o){
+    o = o.slice(0)
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
 }
 
 /*
