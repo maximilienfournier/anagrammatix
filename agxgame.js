@@ -594,5 +594,5 @@ var PausingObject = {
     text: 'This is the text to be displayed during the pause'
 };
 
-var QuestionPool = [QuestionObject5, PausingObject, QuestionObject4, QuestionObject3, QuestionObject2, QuestionObject1]
+var QuestionPool = [QuestionObject2, QuestionObject5, PausingObject, QuestionObject4, QuestionObject3, QuestionObject1]
 

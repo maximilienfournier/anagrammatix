@@ -561,6 +561,44 @@ html, body {
     text-transform: uppercase;
 }
 
+#ulAnswersHost{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    text-align:center;
+}
+#ulAnswersHost li{
+    width: 100%;
+    height: 16%;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    text-align: center;
+    display: inline-block;
+    vertical-align: middle;
+}
+.answersHost{
+    width: 50%;
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    font-size: 2em;
+    /*margin-right: 30%;
+    margin-left: 30%;*/
+    margin-left: 25%;
+    border: 1px solid black;
+    float:left;
+    vertical-align:top;
+}
+
+.answerHostPercentage{
+    width:30%;
+    vertical-align:middle;
+    margin: auto;
+}
+
 #openQuestionAnswerHost{
     text-align: center;
     color: #008000;
@@ -683,7 +721,14 @@ html, body {
     padding: 0;
 }
 
-
+.progressBarMultipleChoice{
+    width: 30% !important;
+    text-align: right !important;
+    margin-right: 4px !important;
+    margin-left: 0px !important;
+    border: 1px solid black;
+    
+}
 /* ******************************
           TITLE SCREEN
      (intro-screen-template)

@@ -765,11 +765,15 @@ jQuery(function($){
              displayAnswers: function(data){
                 if ((data.questionType === 'multipleChoiceSingleAnswer') || (data.questionType === 'priorityQuestion')){
 
-                    var $list = $('<ul/>').attr('id','ulAnswers');
+                    var $list = $('<ul/>').attr('id','ulAnswersHost');
                     $.each(data.arrayOfAnswers, function(){
                         $list                               
                             .append( $('<li/>')
-                                .append($('<div/>').attr('value',(this['value'])).html(this['value']))
+                                .append($('<div/>')
+                                    .append($('<div/>').addClass('answerHostPercentage').attr('id','percentage').html(''))
+                                    .append($('<div/>').addClass('answersHost').attr('value',(this['value'])).html(this['value']))
+                                )
+                                
                             )             
                     });     
 
@@ -979,11 +983,6 @@ jQuery(function($){
 					round : App.currentRound
 				}
 				
-				for (var i=0; i<App.Host.numPlayersInRoom; i++){
-					App.Host.players[i].hasAlreadyAnswered = false;
-                    delete App.Host.players[i].currentAnswer;
-				}
-				
 				// Stops the timeout
 				clearTimeout(App.Host.timeOut);
                 console.log('The host if gonna emit the signal hostDisplayAnswer');
@@ -991,10 +990,16 @@ jQuery(function($){
 				
 				// Notify the server to start the next round after 3 seconds.
                 setTimeout(function(){
+                    for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                        App.Host.players[i].hasAlreadyAnswered = false;
+                        delete App.Host.players[i].currentAnswer;
+                    }
+                    
                     IO.socket.emit('hostNextRound',data);
                     // Delete the display of the answers
                     $('#hostAnswers').html('');
-                },5000)
+                    
+                },10000)
 				
 			 },
 
@@ -1007,15 +1012,7 @@ jQuery(function($){
 
                 switch(App.Host.questionData.questionType){
                     case 'multipleChoiceSingleAnswer':
-                        for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
-                            console.log(i);
-                            if(App.Host.questionData.arrayOfAnswers[i]['bool']){
-                                console.log(App.Host.questionData.arrayOfAnswers[i]['bool']);
-                                // Find the corresponding item and change its css and setting background to green
-                                var value = App.Host.questionData.arrayOfAnswers[i]['value'];
-                                $('#ulAnswers').find("[value='"+value+"']").css('background-color','#008000');
-                            }
-                        }
+                        App.Host.displayCorrectAnswerMultipleChoiceQuestions();
                         break;
                     
                     case 'openQuestion':
@@ -1032,6 +1029,70 @@ jQuery(function($){
                         console.log('Question type unknown!!!');
                 }
              },
+
+             /**
+              * Function that displays the correct answers for the multiple choice questions
+              */
+            displayCorrectAnswerMultipleChoiceQuestions : function(){
+                for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
+                    var value = App.Host.questionData.arrayOfAnswers[i]['value'];
+                    if(App.Host.questionData.arrayOfAnswers[i]['bool']){
+                        //Find the corresponding item and change its css and setting background to green
+                        $('#ulAnswersHost').find("[value='"+value+"']").css('background-color','#008000');
+                    }
+
+                    // Calculates the percentage of players that have chosen this answer
+                    var count = 0;
+                    console.log('value for this button: ' + value);
+                    for(var j=0; j<App.Host.players.length; j++){
+                        console.log(App.Host.players[j]);
+                        console.log('player answer: ' + App.Host.players[j].currentAnswer);
+                        if(App.Host.players[j].currentAnswer === value){
+                            count += 1;
+                        }
+                        console.log('count: ' + count);
+                    }
+
+                    console.log(count/App.Host.numPlayersInRoom*100)
+                
+                    var $progressBar = $('<input/>').addClass('knob')
+                                                        .addClass('percentageKnob')
+                                                        .attr('data-width','100')
+                                                        .attr('data-displayInput','true')
+                                                        .attr('data-readOnly','true')
+                                                        .attr('data-width','75%')
+                                                        .attr('data-height','75%')
+                                                        .attr('value',count/App.Host.numPlayersInRoom*100)
+                    console.log($progressBar);
+                    console.log($progressBar.html());
+                    var $divProgressBar = $('#ulAnswersHost').find("[value='"+value+"']").parent().children("[class='answerHostPercentage']");
+                    console.log($divProgressBar);
+                    var $divHostAnswer = $('#ulAnswersHost').find("[value='"+value+"']");
+                    //$divHostAnswer.before($progressBar);
+                    var $li = $('#ulAnswersHost').find("[value='"+value+"']").parent().parent();
+                    var position = $li.position();
+                    console.log("left: " + position.left + ", top: " + position.top)
+                    console.log("height "+$li.height())
+                    $divProgressBar.css('position','absolute').css('top',position.top).css('left',position.left)
+                    $divProgressBar.html($progressBar)
+            
+                    $('.knob').each(function () {
+
+                       var $this = $(this);
+                       var myVal = $this.attr("value");
+                       $this.knob({});
+                       $({value: 0}).animate({
+                            value: myVal
+                            }, 
+                            {duration: 2000,easing: 'swing',step: function () {
+                               $this.val(Math.ceil(this.value)).trigger('change');
+                            }
+                            })
+
+                   });
+                }
+            },
+
 			 
 			 /**
               * Function that displays the priority answers in the correct order
@@ -1039,16 +1100,18 @@ jQuery(function($){
 
             putPriorityAnswerAtCorrectPosition : function(index){
                 var correctWordAtThisPosition = App.Host.questionData.correctOrderArrayOfAnswers[index]['value'];
-                var $btn = $('#ulAnswers').find("[value='"+correctWordAtThisPosition+"']");
-                var $li = $btn.parent();
+                console.log(correctWordAtThisPosition);
+                var $btn = $('#ulAnswersHost').find("[value='"+correctWordAtThisPosition+"']");
+                var $li = $btn.parent().parent();
                 var callback = function() {
+                    $li.insertBefore($li.siblings(':eq('+ index +')'));
                     $li.insertBefore($li.siblings(':eq('+ index +')'));
                     $btn.css('background-color', '#008000');
                     if(index<App.Host.questionData.correctOrderArrayOfAnswers.length-1){
                         App.Host.putPriorityAnswerAtCorrectPosition(index+1);
                     }
                 };
-                $li.slideUp(500, callback).slideDown(500);
+                $li.slideUp(1000, callback).slideDown(1000);
             },
 
 			/**
@@ -1720,7 +1783,7 @@ jQuery(function($){
                         App.Player.putPriorityAnswerAtCorrectPosition(index+1);
                     }
                 };
-                $li.slideUp(500, callback).slideDown(500);
+                $li.slideUp(1000, callback).slideDown(1000);
             },
 
             /**
@@ -1826,7 +1889,44 @@ jQuery(function($){
                     maxFontSize:300
                 }
             );
+        },
+
+        draw : function () {
+            console.log('draw');
+            // "tron" case
+            if(this.$.data('skin') == 'tron') {
+
+                this.cursorExt = 0.3;
+
+                var a = this.arc(this.cv)  // Arc
+                    , pa                   // Previous arc
+                    , r = 1;
+
+                this.g.lineWidth = this.lineWidth;
+
+                if (this.o.displayPrevious) {
+                    pa = this.arc(this.v);
+                    this.g.beginPath();
+                    this.g.strokeStyle = this.pColor;
+                    this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
+                    this.g.stroke();
+                }
+
+                this.g.beginPath();
+                this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
+                this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
+                this.g.stroke();
+
+                this.g.lineWidth = 2;
+                this.g.beginPath();
+                this.g.strokeStyle = this.o.fgColor;
+                this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+                this.g.stroke();
+
+                return false;
+            }
         }
+
 
     };
 
@@ -1834,3 +1934,59 @@ jQuery(function($){
     App.init();
 
 }($));
+
+/*
+$(function($) {
+    // Knob scripts
+    $(".knob").knob({
+        change : function (value) {
+            console.log("change : " + value);
+        },
+        release : function (value) {
+            //console.log(this.$.attr('value'));
+            console.log("release : " + value);
+        },
+        cancel : function () {
+            console.log("cancel : ", this);
+        },
+        
+        
+
+        draw : function () {
+            console.log('draw');
+            // "tron" case
+            if(this.$.data('skin') == 'tron') {
+
+                this.cursorExt = 0.3;
+
+                var a = this.arc(this.cv)  // Arc
+                    , pa                   // Previous arc
+                    , r = 1;
+
+                this.g.lineWidth = this.lineWidth;
+
+                if (this.o.displayPrevious) {
+                    pa = this.arc(this.v);
+                    this.g.beginPath();
+                    this.g.strokeStyle = this.pColor;
+                    this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
+                    this.g.stroke();
+                }
+
+                this.g.beginPath();
+                this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
+                this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
+                this.g.stroke();
+
+                this.g.lineWidth = 2;
+                this.g.beginPath();
+                this.g.strokeStyle = this.o.fgColor;
+                this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+                this.g.stroke();
+
+                return false;
+            }
+        }
+    });
+                
+});*/
