@@ -14,33 +14,12 @@
 
     <link href="css/styles.css" rel="stylesheet">
 
-    
-
-    <!--
-    <link href="css/ui-lightness/jquery-ui-1.10.4.css" rel="stylesheet">
-    <script src="libs/jquery-1.10.2.js"></script>
-    <script src="libs/jquery-ui-1.10.4.js"></script>
-    <script>
-  $(function() {
-    $( "#check" ).button();
-    $( "#format" ).buttonset();
-  });
-  </script>
-  <style>
-  #format { margin-top: 2em;}
-  #check{
-    background-color: red;
-    width: 200px;
-  }
-  </style>
--->
-
 
 </head>
 
 <body>
 
-
+    <audio id="audioBeginningQuestion" src="sounds/boxingBell.mp3" preload="auto"></audio>
     <div id="gameArea">
         <!-- This is where the templates defined below will be used -->
     </div>
@@ -112,7 +91,7 @@
     <script id="host-game-template" type="text/template">
         <div id="hostHeader">
             <div id="roundNumber"></div>
-            <div id="logo">LOGO</div>
+            <div id="logo">KIWIZ</div>
             <div id="questionNumber"></div>
         </div>
         <div id="wordArea">

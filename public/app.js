@@ -125,6 +125,8 @@ jQuery(function($){
                 App[App.myRole].roundPresentation(data);
             }
             else{
+                console.log('correctOrderArrayOfAnswers in IO');
+                console.log(data.correctOrderArrayOfAnswers);
                 // Sending the question to the Host and the player
                 App[App.myRole].newQuestion(data);
             }
@@ -137,10 +139,10 @@ jQuery(function($){
 
         onplayersDisplayAnswer : function(data){
             console.log('onHostDisplayAnswer');
-            if(App.myRole === 'Player'){
-                console.log('onHostDisplayAnswer');
-                App[App.myRole].displayAnswer(data);
-            }
+            
+            console.log('onHostDisplayAnswer');
+            App[App.myRole].displayCorrectAnswer(data);
+            
         },
 
 
@@ -733,6 +735,7 @@ jQuery(function($){
              */
             newQuestion : function(data) {
                 console.log('newQuestion Host');
+                document.getElementById('audioBeginningQuestion').play();
                 App.Host.questionNumberInCurrentRound+=1;
 
                 // Change the host header
@@ -763,14 +766,14 @@ jQuery(function($){
                 if ((data.questionType === 'multipleChoiceSingleAnswer') || (data.questionType === 'priorityQuestion')){
 
                     var $list = $('<ul/>').attr('id','ulAnswers');
-                    //$.each(data.list, function(){
                     $.each(data.arrayOfAnswers, function(){
-                        $list                                //  <ul> </ul>
+                        $list                               
                             .append( $('<li/>')
-                                .append($('<div/>').html(this['value']))
+                                .append($('<div/>').attr('value',(this['value'])).html(this['value']))
                             )             
                     });     
 
+                    console.log($list.html());
                     // Insert the list onto the screen.
                     $('#hostAnswers').html($list);
                 }
@@ -994,8 +997,60 @@ jQuery(function($){
                 },5000)
 				
 			 },
+
+             /*
+              * Function that displays the correct answer after the end of the round
+              */
+
+             displayCorrectAnswer: function(data){
+                console.log('displayCorrectAnswer');
+
+                switch(App.Host.questionData.questionType){
+                    case 'multipleChoiceSingleAnswer':
+                        for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
+                            console.log(i);
+                            if(App.Host.questionData.arrayOfAnswers[i]['bool']){
+                                console.log(App.Host.questionData.arrayOfAnswers[i]['bool']);
+                                // Find the corresponding item and change its css and setting background to green
+                                var value = App.Host.questionData.arrayOfAnswers[i]['value'];
+                                $('#ulAnswers').find("[value='"+value+"']").css('background-color','#008000');
+                            }
+                        }
+                        break;
+                    
+                    case 'openQuestion':
+                        var $div = $('<div/>').attr('id','openQuestionAnswerHost').html('Correct answer: ' + App.Host.questionData.arrayOfAnswers[0]['value']);
+                        $('#hostAnswers').html($div);
+                        break;
+
+                    
+                    case 'priorityQuestion':
+                        App.Host.putPriorityAnswerAtCorrectPosition(0);
+                        break;
+                    
+                    default:
+                        console.log('Question type unknown!!!');
+                }
+             },
 			 
-			 
+			 /**
+              * Function that displays the priority answers in the correct order
+              */
+
+            putPriorityAnswerAtCorrectPosition : function(index){
+                var correctWordAtThisPosition = App.Host.questionData.correctOrderArrayOfAnswers[index]['value'];
+                var $btn = $('#ulAnswers').find("[value='"+correctWordAtThisPosition+"']");
+                var $li = $btn.parent();
+                var callback = function() {
+                    $li.insertBefore($li.siblings(':eq('+ index +')'));
+                    $btn.css('background-color', '#008000');
+                    if(index<App.Host.questionData.correctOrderArrayOfAnswers.length-1){
+                        App.Host.putPriorityAnswerAtCorrectPosition(index+1);
+                    }
+                };
+                $li.slideUp(500, callback).slideDown(500);
+            },
+
 			/**
 			 * Countdown for specific round
 			 */
@@ -1314,7 +1369,6 @@ jQuery(function($){
 
                 // Setting all buttons to original border style
                 var $ul = $btn.parent().parent();
-                console.log($ul.children());
                 $ul.children().each(function() {
                     $($(this).children()).css('border-style','hidden');
                 });
@@ -1342,6 +1396,11 @@ jQuery(function($){
 
             onPlayerAnswerClickOpenQuestion: function() {
                 console.log('Clicked Answer Button');
+                // Changing the css of the button
+                var $btn = $(this);
+                $btn.css('border-style','solid');
+                $btn.css('border-width','5px');
+                $btn.css('border-color','#000000');
                 
                 var answer = document.getElementById("openQuestionText").value;
                 // Send the player info and tapped word to the server so
@@ -1479,18 +1538,9 @@ jQuery(function($){
 
                 
                 $list                                
-                    .append($('<li/>') 
-                        .append($('<input/>')
-                            .attr('id','openQuestionText')
-                            //.addClass('btn')
-                        )
-                        .append( $('<button/>')      //  <ul> <li> <button> </button> </li> </ul>
-                            .addClass('btnOpenAnswer')   //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
-                            .addClass('btn')         //  <ul> <li> <button class='btnOpenAnswer'> </button> </li> </ul>
-                            .val('submit')               //  <ul> <li> <button class='btnOpenAnswer' value='submit'> </button> </li> </ul>
-                            .html('Submit')              //  <ul> <li> <button class='btnOpenAnswer' value='submit'>Submit</button> </li> </ul>
-                        )
-                    )
+                    .append($('<li/>').append($('<input/>').attr('id','openQuestionText')))
+                    .append($('<li/>').append( $('<button/>').addClass('btnOpenAnswer').addClass('btn').val('submit').html('Submit')))
+                    .append($('<li/>').append($('<div/>').attr('id','resultOpenQuestion')))
             
 
                 // Insert the list onto the screen.
@@ -1500,12 +1550,6 @@ jQuery(function($){
             newQuestionPriorityQuestion : function(data){
                 //var answersShuffled = App.shuffle(data.arrayOfAnswers);
                 var $list = $('<ul/>').attr('id','ulAnswers');
-
-                console.log('New question priority answer');
-                console.log(data.arrayOfAnswers);
-
-                console.log('Correct order of answers');
-                console.log(data.correctOrderArrayOfAnswers);
 
                 $.each(data.arrayOfAnswers, function(){
                     $list                                //  <ul> </ul>
@@ -1592,6 +1636,12 @@ jQuery(function($){
             onPlayerClickPrioritySubmit : function(){
                 App.Player.priorityAnswerCurrentRanking = 0;
                 console.log('Submit button clicked');
+
+                // Changing the css of the button
+                var $btn = $(this);
+                $btn.css('border-style','solid');
+                $btn.css('border-width','5px');
+                $btn.css('border-color','#000000');
                 
                 var answer = [];
                 var elems = document.getElementsByTagName('*'), i;
@@ -1621,9 +1671,11 @@ jQuery(function($){
              * Function called to display the correct answer at the end of the round
              */
 
-            displayAnswer: function(data){
+            displayCorrectAnswer: function(data){
                 console.log('displayAnswer');
+                
                 switch(App.Player.questionData.questionType){
+
                     case 'multipleChoiceSingleAnswer':
                         for (var i=0; i<App.Player.questionData.arrayOfAnswers.length; i++){
                             if(App.Player.questionData.arrayOfAnswers[i]['bool']){
@@ -1634,12 +1686,41 @@ jQuery(function($){
                             }
                         }
                         break;
+
+                    case 'openQuestion':
+                        $('#resultOpenQuestion').html('Correct answer: ' + App.Player.questionData.arrayOfAnswers[0]['value']);
+                        break;
+
+                    case 'priorityQuestion':
+                        App.Player.putPriorityAnswerAtCorrectPosition(0);
+                        break;
+
                     default:
                         console.log('Unkown question type!!!');
                 }
                 
                     
                 
+            },
+
+            putPriorityAnswerAtCorrectPosition : function(index){
+                var correctWordAtThisPosition = App.Player.questionData.correctOrderArrayOfAnswers[index]['value'];
+                console.log(correctWordAtThisPosition + ' ' + index)
+                var $li = $('#ulAnswers').find("[id='"+correctWordAtThisPosition+"']").parent();
+                var callback = function() {
+                    $li.insertBefore($li.siblings(':eq('+ index +')'));
+                    var $number = $li.children("[id='"+correctWordAtThisPosition+"']");
+                    if (parseInt($number.html()) === index+1){
+                        $number.css('background-color', '#008000');
+                    }
+                    else{
+                        $number.css('background-color', '#FF0000');
+                    }
+                    if(index<App.Player.questionData.correctOrderArrayOfAnswers.length-1){
+                        App.Player.putPriorityAnswerAtCorrectPosition(index+1);
+                    }
+                };
+                $li.slideUp(500, callback).slideDown(500);
             },
 
             /**

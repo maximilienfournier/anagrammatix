@@ -127,71 +127,75 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
     connection.query(queries[index], function(err, rows, fields){
         // Number of questions in the round, dealing with the case when not enough questions to create the round
         // That could be enhanced by selecting questions that are related to the wanted criterias
-        console.log("setupOfGame " + setupOfGame[index]);
-        //console.log(rows);
-        console.log('setupOfGame.numberOfQuestions '+ setupOfGame[index].numberOfQuestions);
-        console.log('setupOfGame.difficulty '+ setupOfGame[index].difficulty);
-        console.log('setupOfGame.tag '+ setupOfGame[index].tag);
-        console.log('setupOfGame.questionType '+ setupOfGame[index].questionType);
-        console.log('setupOfGame.speedScoring '+ setupOfGame[index].speedScoring);
+        if (rows != undefined){
+            console.log("setupOfGame " + setupOfGame[index]);
+            //console.log(rows);
+            console.log('setupOfGame.numberOfQuestions '+ setupOfGame[index].numberOfQuestions);
+            console.log('setupOfGame.difficulty '+ setupOfGame[index].difficulty);
+            console.log('setupOfGame.tag '+ setupOfGame[index].tag);
+            console.log('setupOfGame.questionType '+ setupOfGame[index].questionType);
+            console.log('setupOfGame.speedScoring '+ setupOfGame[index].speedScoring);
 
-        setupOfGame[index].numberOfQuestions = Math.min(parseInt(setupOfGame[index].numberOfQuestions), rows.length);
-        console.log('Actual number of questions: '+setupOfGame[index].numberOfQuestions);
+            setupOfGame[index].numberOfQuestions = Math.min(parseInt(setupOfGame[index].numberOfQuestions), rows.length);
+            console.log('Actual number of questions: '+setupOfGame[index].numberOfQuestions);
 
-        // Generating random indexes to pick up random questions from the one selected in the DB
-        var arr = []
-        while(arr.length < setupOfGame[index].numberOfQuestions){
-          var randomNumber=Math.round(Math.random()*(rows.length-1))
-          var found=false;
-          for(var i=0;i<arr.length;i++){
-            if(arr[i]==randomNumber){
-                found=true;
-                break
+            // Generating random indexes to pick up random questions from the one selected in the DB
+            var arr = []
+            while(arr.length < setupOfGame[index].numberOfQuestions){
+              var randomNumber=Math.round(Math.random()*(rows.length-1))
+              var found=false;
+              for(var i=0;i<arr.length;i++){
+                if(arr[i]==randomNumber){
+                    found=true;
+                    break
+                }
+              }
+              if(!found)arr[arr.length]=randomNumber;
             }
-          }
-          if(!found)arr[arr.length]=randomNumber;
-        }
 
-        // Screen to announce the properties of the round
-        var RoundPresentation = {
-            questionType: 'roundPresentation',
-            roundIndex: index + 1,
-            setupOfGame: setupOfGame[index]
-        };
-
-        QuestionPoolDB[gameId].push(RoundPresentation);
-
-        // Creates the questions and add them to the QuestionPoolDB object
-        for(var i = 0; i<setupOfGame[index].numberOfQuestions;i++){
-            var question = createQuestionObject(rows[arr[i]]);
-            // Adding speed scoring if necessary
-            if (setupOfGame[index].speedScoring === true){
-                question.speedScoring = true;
-            }
-            else{
-                question.speedScoring = false;
-            }
-            //console.log(question);
-            QuestionPoolDB[gameId].push(question);
-        }
-
-        // Adding a pause between each round
-        if (index < setupOfGame.length-1){
-            var nextRound = index + 2;
-            var PausingObject = {
-                questionType: 'pausingObject'
+            // Screen to announce the properties of the round
+            var RoundPresentation = {
+                questionType: 'roundPresentation',
+                roundIndex: index + 1,
+                setupOfGame: setupOfGame[index]
             };
-            QuestionPoolDB[gameId].push(PausingObject);
-        }
-        
-        connection.end(function(err) {
-            console.log('The SQL connection has been terminated');
-        });
 
-        if(index < queries.length-1){
-            createQuestionPoolDBRound(setupOfGame, gameId, index+1);
+            QuestionPoolDB[gameId].push(RoundPresentation);
+
+            // Creates the questions and add them to the QuestionPoolDB object
+            for(var i = 0; i<setupOfGame[index].numberOfQuestions;i++){
+                var question = createQuestionObject(rows[arr[i]]);
+                // Adding speed scoring if necessary
+                if (setupOfGame[index].speedScoring === true){
+                    question.speedScoring = true;
+                }
+                else{
+                    question.speedScoring = false;
+                }
+                //console.log(question);
+                QuestionPoolDB[gameId].push(question);
+            }
+
+            // Adding a pause between each round
+            if (index < setupOfGame.length-1){
+                var nextRound = index + 2;
+                var PausingObject = {
+                    questionType: 'pausingObject'
+                };
+                QuestionPoolDB[gameId].push(PausingObject);
+            }
+            
+            connection.end(function(err) {
+                console.log('The SQL connection has been terminated');
+            });
+
+            if(index < queries.length-1){
+                createQuestionPoolDBRound(setupOfGame, gameId, index+1);
+            }
+        
         }
     });
+        
     
     
     
@@ -438,19 +442,40 @@ TOUCHI'S QUESTIONS
  * @param gameId The room identifier
  */
 function sendQuestion(QuestionPoolIndex, gameId) {
-    var data = getQuestionData(QuestionPoolIndex, gameId);
+    var data = clone(getQuestionData(QuestionPoolIndex, gameId));
     if (data.questionType === 'priorityQuestion'){
-        data.correctOrderArrayOfAnswers = data.arrayOfAnswers.slice(0);
+        console.log('arrayOfAnswers at beginning');
+        for(var i=0;i<data.arrayOfAnswers.length;i++){
+            console.log(data.arrayOfAnswers[i]['value']);
+        }
+        var tempArray = data.arrayOfAnswers.slice(0);
+        data.correctOrderArrayOfAnswers = tempArray;
         data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
+        for(var i=0;i<data.correctOrderArrayOfAnswers.length;i++){
+            console.log(data.correctOrderArrayOfAnswers[i]['value']);
+        }
+        console.log('arrayOfAnswers');
+        for(var i=0;i<data.arrayOfAnswers.length;i++){
+            console.log(data.arrayOfAnswers[i]['value']);
+        }
     }
     io.sockets.in(data.gameId).emit('newQuestionData', data);
 }
 
+function clone(obj) {
+    if (null == obj || "object" != typeof obj) return obj;
+    var copy = obj.constructor();
+    for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+    }
+    return copy;
+}
+   
  /**
  * Function that shuffles an array
  */
 function shuffle(o){
-    o = o.slice(0)
+    var o = o.slice();
     for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
 }
@@ -485,6 +510,7 @@ FIND WORD WITH SAME LETTERS QUESTIONS
  * Javascript implementation of Fisher-Yates shuffle algorithm
  * http://stackoverflow.com/questions/2450954/how-to-randomize-a-javascript-array
  */
+ /*
 function shuffle(array) {
     var currentIndex = array.length;
     var temporaryValue;
@@ -505,6 +531,7 @@ function shuffle(array) {
 
     return array;
 }
+*/
 
 
 var QuestionObject1 = {
