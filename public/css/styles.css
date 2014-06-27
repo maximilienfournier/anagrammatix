@@ -207,6 +207,7 @@ html, body {
 .joinGameWrapper .btn {
     width: 90%;
     height: 50%;
+    margin-top: 10px;
 }
 
 
@@ -440,21 +441,26 @@ html, body {
     margin-left: 1%;
 }
 .btnPriorityAnswerSubmit{
-    width: 48%;
+    width: 48% !important;
     border-bottom: 1px dotted white;
     border-right: 1px dotted white;
     font-weight: 400;
-    font-size: 2em;
+    font-size: 1em;
     color: #FFFFFF;
     margin-right: 1%;
 }
 .btnPriorityAnswerReset{
-    width: 48%;
+    width: 48% !important;
     border-bottom: 1px dotted white;
     font-weight: 400;
-    font-size: 2em;
+    font-size: 1em;
     color: #FFFFFF;
     padding-left: 2px;
+}
+
+#rankingSubmitDelete{
+    border: hidden;
+    width:90%;
 }
 
 #openQuestionText{
@@ -597,6 +603,10 @@ html, body {
     width:30%;
     vertical-align:middle;
     margin: auto;
+}
+.answerHostPercentage div{
+    width: 100%;
+    height: 100%;
 }
 
 #openQuestionAnswerHost{

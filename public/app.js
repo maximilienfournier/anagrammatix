@@ -988,7 +988,11 @@ jQuery(function($){
                 console.log('The host if gonna emit the signal hostDisplayAnswer');
                 IO.socket.emit('hostDisplayAnswer', data);
 				
-				// Notify the server to start the next round after 3 seconds.
+				// Notify the server to start the next round after x seconds.
+                var nbSeconds = 5000;
+                if(App.Host.questionData.questionType === 'priorityQuestion'){
+                    nbSeconds = 12000;
+                }
                 setTimeout(function(){
                     for (var i=0; i<App.Host.numPlayersInRoom; i++){
                         App.Host.players[i].hasAlreadyAnswered = false;
@@ -999,7 +1003,7 @@ jQuery(function($){
                     // Delete the display of the answers
                     $('#hostAnswers').html('');
                     
-                },10000)
+                },nbSeconds)
 				
 			 },
 
@@ -1043,17 +1047,17 @@ jQuery(function($){
 
                     // Calculates the percentage of players that have chosen this answer
                     var count = 0;
-                    console.log('value for this button: ' + value);
+                    //console.log('value for this button: ' + value);
                     for(var j=0; j<App.Host.players.length; j++){
-                        console.log(App.Host.players[j]);
-                        console.log('player answer: ' + App.Host.players[j].currentAnswer);
+                        //console.log(App.Host.players[j]);
+                        //console.log('player answer: ' + App.Host.players[j].currentAnswer);
                         if(App.Host.players[j].currentAnswer === value){
                             count += 1;
                         }
-                        console.log('count: ' + count);
+                        //console.log('count: ' + count);
                     }
 
-                    console.log(count/App.Host.numPlayersInRoom*100)
+                    //console.log(count/App.Host.numPlayersInRoom*100)
                 
                     var $progressBar = $('<input/>').addClass('knob')
                                                         .addClass('percentageKnob')
@@ -1063,16 +1067,14 @@ jQuery(function($){
                                                         .attr('data-width','75%')
                                                         .attr('data-height','75%')
                                                         .attr('value',count/App.Host.numPlayersInRoom*100)
-                    console.log($progressBar);
-                    console.log($progressBar.html());
+                    //console.log($progressBar);
                     var $divProgressBar = $('#ulAnswersHost').find("[value='"+value+"']").parent().children("[class='answerHostPercentage']");
-                    console.log($divProgressBar);
-                    var $divHostAnswer = $('#ulAnswersHost').find("[value='"+value+"']");
-                    //$divHostAnswer.before($progressBar);
+                    //console.log($divProgressBar);
+                    //var $divHostAnswer = $('#ulAnswersHost').find("[value='"+value+"']");
                     var $li = $('#ulAnswersHost').find("[value='"+value+"']").parent().parent();
                     var position = $li.position();
-                    console.log("left: " + position.left + ", top: " + position.top)
-                    console.log("height "+$li.height())
+                    //console.log("left: " + position.left + ", top: " + position.top)
+                    //console.log("height "+$li.height())
                     $divProgressBar.css('position','absolute').css('top',position.top).css('left',position.left)
                     $divProgressBar.html($progressBar)
             
@@ -1100,18 +1102,85 @@ jQuery(function($){
 
             putPriorityAnswerAtCorrectPosition : function(index){
                 var correctWordAtThisPosition = App.Host.questionData.correctOrderArrayOfAnswers[index]['value'];
-                console.log(correctWordAtThisPosition);
+                //console.log(correctWordAtThisPosition);
                 var $btn = $('#ulAnswersHost').find("[value='"+correctWordAtThisPosition+"']");
                 var $li = $btn.parent().parent();
+
                 var callback = function() {
-                    $li.insertBefore($li.siblings(':eq('+ index +')'));
+                    
                     $li.insertBefore($li.siblings(':eq('+ index +')'));
                     $btn.css('background-color', '#008000');
+                    
+                    // Calls the next answer diplay if necessary
                     if(index<App.Host.questionData.correctOrderArrayOfAnswers.length-1){
                         App.Host.putPriorityAnswerAtCorrectPosition(index+1);
                     }
+                    else{
+                        console.log('setting timer');
+                        setTimeout(App.Host.displayPercentagePriorityRanking, 2000);
+                    }
                 };
+                //console.log('slide up')
+                //console.log(index);
                 $li.slideUp(1000, callback).slideDown(1000);
+                //console.log('after slide up');
+                //console.log(index);
+            },
+
+            displayPercentagePriorityRanking : function(){
+                console.log('end of timer')
+                for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
+                    var value = App.Host.questionData.correctOrderArrayOfAnswers[i]['value'];
+
+                    // Calculates the percentage of players that have chosen this answer
+                    var count = 0;
+                    //console.log('value for this button: ' + value);
+                    for(var j=0; j<App.Host.players.length; j++){
+                        //console.log(App.Host.players[j]);
+                        //console.log('player answer: ' + App.Host.players[j].currentAnswer[i]);
+                        if(App.Host.players[j].currentAnswer[i] === value){
+                            count += 1;
+                        } 
+                    }
+                    //console.log('count: ' + count);
+                    //console.log(count/App.Host.numPlayersInRoom*100)
+                
+                    var $progressBar = $('<input/>').addClass('knob')
+                                                        .addClass('percentageKnob')
+                                                        .attr('data-width','100')
+                                                        .attr('data-displayInput','true')
+                                                        .attr('data-readOnly','true')
+                                                        .attr('data-width','75%')
+                                                        .attr('data-height','75%')
+                                                        .attr('value',count/App.Host.numPlayersInRoom*100)
+                                                        .attr('line',i)
+                    //console.log($progressBar);
+                    var $divProgressBar = $('#ulAnswersHost').find("[value='"+value+"']").parent().children("[class='answerHostPercentage']");
+                    //console.log($divProgressBar);
+                    //var $divHostAnswer = $('#ulAnswersHost').find("[value='"+value+"']");
+                    var $li = $('#ulAnswersHost').find("[value='"+value+"']").parent().parent();
+                    var position = $li.position();
+                    //console.log("left: " + position.left + ", top: " + position.top)
+                    //console.log("height "+$li.height())
+                    $divProgressBar.css('position','absolute').css('top',position.top).css('left',position.left)
+                    $divProgressBar.html($progressBar)
+                    
+
+                    $('.knob').each(function () {
+                        var $this = $(this);
+                        var myVal = $this.attr("value");
+                        if (parseInt($this.attr('line')) === i){
+                            $this.knob({});
+                                $({value: 0}).animate({
+                                    value: myVal
+                                    }, 
+                                    {duration: 2000,easing: 'swing',step: function () {
+                                       $this.val(Math.ceil(this.value)).trigger('change');}})        
+                        }
+                        
+
+                   });
+                }
             },
 
 			/**
@@ -1935,58 +2004,3 @@ jQuery(function($){
 
 }($));
 
-/*
-$(function($) {
-    // Knob scripts
-    $(".knob").knob({
-        change : function (value) {
-            console.log("change : " + value);
-        },
-        release : function (value) {
-            //console.log(this.$.attr('value'));
-            console.log("release : " + value);
-        },
-        cancel : function () {
-            console.log("cancel : ", this);
-        },
-        
-        
-
-        draw : function () {
-            console.log('draw');
-            // "tron" case
-            if(this.$.data('skin') == 'tron') {
-
-                this.cursorExt = 0.3;
-
-                var a = this.arc(this.cv)  // Arc
-                    , pa                   // Previous arc
-                    , r = 1;
-
-                this.g.lineWidth = this.lineWidth;
-
-                if (this.o.displayPrevious) {
-                    pa = this.arc(this.v);
-                    this.g.beginPath();
-                    this.g.strokeStyle = this.pColor;
-                    this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
-                    this.g.stroke();
-                }
-
-                this.g.beginPath();
-                this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
-                this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
-                this.g.stroke();
-
-                this.g.lineWidth = 2;
-                this.g.beginPath();
-                this.g.strokeStyle = this.o.fgColor;
-                this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
-                this.g.stroke();
-
-                return false;
-            }
-        }
-    });
-                
-});*/
