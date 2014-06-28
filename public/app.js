@@ -134,7 +134,7 @@ jQuery(function($){
         },
 
         /**
-         * Called at the end of the round to display the correct answer
+         * Called at the end of the round to display the correct answer and update the score
          */
 
         onplayersDisplayAnswer : function(data){
@@ -142,6 +142,7 @@ jQuery(function($){
             
             console.log('onHostDisplayAnswer');
             App[App.myRole].displayCorrectAnswer(data);
+            App.Player.updatePlayerScore(data);
             
         },
 
@@ -232,6 +233,7 @@ jQuery(function($){
             App.$templateNewGame = $('#create-game-template').html();
             App.$templateJoinGame = $('#join-game-template').html();
             App.$hostGame = $('#host-game-template').html();
+            App.$templateplayerGame = $('#player-game-template').html();
             App.$templateSetupNewGame = $('#setup-game-template').html();
         },
 
@@ -679,38 +681,6 @@ jQuery(function($){
                 App.countDown( $secondsLeft, 5, function(){
                     IO.socket.emit('hostCountdownFinished', App.gameId);
                 });
-				
-				// Adding the player score area
-				for (var i=0; i< App.Host.numPlayersInRoom; i++){
-					//console.log($('#playerScores').html());
-					var newTextPlayersScores = $('#playerScores').html() + "<div id='player"+ (i+1) +"Score' class='playerScore'> <span class='score'>0</span><span class='playerName'>Player" + (i+1) +"</span> </div>";
-					//console.log(newTextPlayersScores);
-					$('#playerScores').html(newTextPlayersScores);
-				}
-				//console.log($('#playerScores').html());
-				
-                // Display the players' names on screen
-                for (var i=0; i< App.Host.numPlayersInRoom; i++){
-                	$('#player'+(i+1)+'Score')
-                    .find('.playerName')
-                    .html(App.Host.players[i].playerName);
-				}
-				/*
-				$('#player1Score')
-                    .find('.playerName')
-                    .html(App.Host.players[0].playerName);
-
-                $('#player2Score')
-                    .find('.playerName')
-                    .html(App.Host.players[1].playerName);
-                */
-                    
-                // Set the Score section on screen to 0 for each player.
-                for (var i=0; i< App.Host.numPlayersInRoom; i++){
-                	$('#player'+(i+1)+'Score').find('.score').attr('id',App.Host.players[i].mySocketId);
-                }
-                //$('#player1Score').find('.score').attr('id',App.Host.players[0].mySocketId);
-                //$('#player2Score').find('.score').attr('id',App.Host.players[1].mySocketId);
             },
             
             /**
@@ -976,16 +946,31 @@ jQuery(function($){
 				
 				// Calculates scores
 				App.Host.calculateScores();
+
+                // Creates an array with the scores and names
+                var arrayOfScores = [];
+                var arrayOfSocketIDs = [];
+                for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                    var tempscore = $('#' + App.Host.players[i].mySocketId);
+                    console.log ('temporary var is'+tempscore.text());
+                    arrayOfScores[i] = tempscore.text();
+                    var tempid = App.Host.players[i].mySocketId;
+                    arrayOfSocketIDs[i] = tempid;
+                    console.log('ID of player'+i+'is'+arrayOfSocketIDs[i]);
+                    console.log('Score of player'+i+'is'+arrayOfScores[i]);
+                }
 				
 				// Prepare data to send to the server
 				var data = {
 					gameId : App.gameId,
-					round : App.currentRound
+					round : App.currentRound, 
+                    arrayOfScores : arrayOfScores,
+                    arrayOfSocketIDs : arrayOfSocketIDs
 				}
 				
 				// Stops the timeout
 				clearTimeout(App.Host.timeOut);
-                console.log('The host if gonna emit the signal hostDisplayAnswer');
+                console.log('The host is gonna emit the signal hostDisplayAnswer');
                 IO.socket.emit('hostDisplayAnswer', data);
 				
 				// Notify the server to start the next round after x seconds.
@@ -1474,7 +1459,6 @@ jQuery(function($){
                 // Set the appropriate properties for the current player.
                 App.myRole = 'Player';
                 App.Player.myName = data.playerName;
-                
             },
 
             /**
@@ -1560,7 +1544,7 @@ jQuery(function($){
                 }
                 IO.socket.emit('playerRestart',data);
                 App.currentRound = 0;
-                $('#gameArea').html("<h3>Waiting on host to start new game.</h3>");
+                $('#answersArea').html("<h3>Waiting on host to start new game.</h3>");
             },
 
             /**
@@ -1573,7 +1557,6 @@ jQuery(function($){
                     App.gameId = data.gameId;
 
                     console.log('updateWaitingScreen');
-
                     $('#playerWaitingMessage')
                         .append('<p/>')
                         .text('Joined Game ' + data.gameId + '. Please wait for game to begin.');
@@ -1586,8 +1569,17 @@ jQuery(function($){
              * @param hostData
              */
             gameCountdown : function(hostData) {
+                // Display the Player Game HTML on the player's screen.
+                App.$gameArea.html(App.$templateplayerGame);
+
+                // Updates diplay of name
+                console.log('my name is '+App.Player.myName)
+                $('#playerScore')
+                .find('.playerName')
+                .html(App.Player.myName);
+
                 App.Player.hostSocketId = hostData.mySocketId;
-                $('#gameArea')
+                $('#answersArea')
                     .html('<div class="gameOver">Get Ready!</div>');
             },
 
@@ -1598,7 +1590,7 @@ jQuery(function($){
             pausingGame : function(data){
                 console.log('pausingGame');
                 var $pauseText = $('<div/>').attr('id','pausingText').html('Pausing game. <br>Have a drink and come back!').addClass('info')
-                $('#gameArea').html($pauseText);
+                $('#answersArea').html($pauseText);
             },
 
             /*
@@ -1608,7 +1600,7 @@ jQuery(function($){
             roundPresentation: function(data){
                 console.log('roundPresentation');
                 var $presentationText = $('<div/>').attr('id','presentationText').html('Round is about to begin. <br>You better be ready!').addClass('info')
-                $('#gameArea').html($presentationText);
+                $('#answersArea').html($presentationText);
             },
             /**
              * Show the list of words for the current round.
@@ -1662,7 +1654,7 @@ jQuery(function($){
                 });
 
                 // Insert the list onto the screen.
-                $('#gameArea').html($list);
+                $('#answersArea').html($list);
             },
 
             newQuestionOpenQuestion : function(data){
@@ -1676,7 +1668,7 @@ jQuery(function($){
             
 
                 // Insert the list onto the screen.
-                $('#gameArea').html($list);
+                $('#answersArea').html($list);
             },
 
             newQuestionPriorityQuestion : function(data){
@@ -1722,7 +1714,7 @@ jQuery(function($){
                 
 
                 // Insert the list onto the screen.
-                $('#gameArea').html($list);
+                $('#answersArea').html($list);
 
             },
 
@@ -1830,9 +1822,29 @@ jQuery(function($){
                     default:
                         console.log('Unkown question type!!!');
                 }
+            },
                 
-                    
-                
+            /**
+             * Updates the score of the player
+             */
+            updatePlayerScore: function(data){
+                console.log('playerNewScore');
+                console.log(IO.socket.socket.sessionid);
+
+                // Find the player score in the array of scores
+                if (typeof(data.arrayOfScores) != 'undefined'){
+                    var i = 0;
+                    while (IO.socket.socket.sessionid != data.arrayOfSocketIDs[i]){
+                        i = i+1;
+                    }
+                }
+                //console.log('the selected socketID is'+IO.socket.socket.sessionid);
+                //console.log('my player socket ID is'+data.arrayOfSocketIDs[i]);
+                var myScore = data.arrayOfScores[i];
+                console.log('my Score is '+myScore);
+                $('#playerScore')
+                .find('.score')
+                .html(myScore);                
             },
 
             putPriorityAnswerAtCorrectPosition : function(index){
@@ -1859,7 +1871,7 @@ jQuery(function($){
              * Show the "Game Over" screen.
              */
             endGame : function() {
-                $('#gameArea')
+                $('#answersArea')
                     .html('<div class="gameOver">Game Over!</div>')
                     .append(
                         // Create a button to start a new game.

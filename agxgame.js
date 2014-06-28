@@ -42,10 +42,10 @@ exports.initGame = function(sio, socket){
  */
 function hostCreateNewGame(setupOfGame) {
     var connectionTest = mysql.createConnection({
-      host     : 'sql5.freemysqlhosting.net',
-      user     : 'sql543533',
-      password : 'dD2!mQ5*',
-      database : 'sql543533',
+      host     : 'us-cdbr-east-06.cleardb.net',
+      user     : 'bf83dd12049197',
+      password : '9f757d98',
+      database : 'heroku_109e318ba266730',
     });
     // Create a unique Socket.IO Room
     var thisGameId = ( Math.random() * 100000 ) | 0;
@@ -88,10 +88,10 @@ function hostCreateNewGame(setupOfGame) {
 
 function createSetOfQuestionFromDB(setupOfGame, gameId){
     /*var connection = mysql.createConnection({
-      host     : 'sql5.freemysqlhosting.net',
-      user     : 'sql543533',
-      password : 'dD2!mQ5*',
-      database : 'sql543533',
+      host     : 'us-cdbr-east-06.cleardb.net',
+      user     : 'bf83dd12049197',
+      password : '9f757d98',
+      database : 'heroku_109e318ba266730',
     });
     */
     //var QuestionPoolDB = [];
@@ -118,10 +118,10 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
     console.log(queries[index]);
     
     var connection = mysql.createConnection({
-      host     : 'sql5.freemysqlhosting.net',
-      user     : 'sql543533',
-      password : 'dD2!mQ5*',
-      database : 'sql543533',
+      host     : 'us-cdbr-east-06.cleardb.net',
+      user     : 'bf83dd12049197',
+      password : '9f757d98',
+      database : 'heroku_109e318ba266730',
     });
     
     connection.query(queries[index], function(err, rows, fields){
@@ -291,6 +291,7 @@ function hostStartGame(gameId) {
  */
 function hostNextRound(data) {
 	console.log('Asked for a new round');
+
     if (QuestionPoolDB[data.gameId].length === 0){
         // No connection to the DB
         var limit = QuestionPool.length;
@@ -399,7 +400,7 @@ function playerCannotJoinGame(data){
 }
 
 /**
- * Function called to duisplay the correct answer on the players' screens
+ * Function called to display the correct answer on the players' screens
  */
 function playersDisplayAnswer(data){
     console.log('playersDisplayAnswer');
