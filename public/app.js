@@ -142,7 +142,7 @@ jQuery(function($){
             
             console.log('onHostDisplayAnswer');
             App[App.myRole].displayCorrectAnswer(data);
-            App.Player.updatePlayerScore(data);
+            App[App.myRole].updatePlayerScore(data);
             
         },
 
@@ -951,9 +951,9 @@ jQuery(function($){
                 var arrayOfScores = [];
                 var arrayOfSocketIDs = [];
                 for (var i=0; i<App.Host.numPlayersInRoom; i++){
-                    var tempscore = $('#' + App.Host.players[i].mySocketId);
-                    console.log ('temporary var is'+tempscore.text());
-                    arrayOfScores[i] = tempscore.text();
+                    var tempscore = App.Host.players[i].score;
+                    console.log ('temporary var is'+tempscore);
+                    arrayOfScores[i] = tempscore;
                     var tempid = App.Host.players[i].mySocketId;
                     arrayOfSocketIDs[i] = tempid;
                     console.log('ID of player'+i+'is'+arrayOfSocketIDs[i]);
@@ -983,7 +983,7 @@ jQuery(function($){
                         App.Host.players[i].hasAlreadyAnswered = false;
                         delete App.Host.players[i].currentAnswer;
                     }
-                    
+                    console.log('The host is gonna emit the signal hostDisplayAnswer');
                     IO.socket.emit('hostNextRound',data);
                     // Delete the display of the answers
                     $('#hostAnswers').html('');
@@ -1205,6 +1205,10 @@ jQuery(function($){
              calculateScores : function(){
 			     // Calls the appropriate scoring function for each player
                  for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                    if (typeof(App.Host.players[i].score) === 'undefined'){
+                        App.Host.players[i].score = 0;
+                    }
+
                     var $pScore = $('#' + App.Host.players[i].mySocketId);
                     var scoreForThisRound = 0;
                     App.Host.calculateMinMaxPoints();
@@ -1239,6 +1243,10 @@ jQuery(function($){
                      
                      $pScore.text( +$pScore.text() +  scoreForThisRound);
                      console.log('Points for player ' + App.Host.players[i].mySocketId + ' for this round: ' + scoreForThisRound);
+
+                     console.log('App.Host.players[i].score before'+App.Host.players[i].score);
+                     App.Host.players[i].score = App.Host.players[i].score+scoreForThisRound;
+                     console.log('App.Host.players[i].score after'+App.Host.players[i].score);
                      App.Host.players[i].answer = '';
                      App.Host.players[i].timeOfAnswer = 0;
                  }
