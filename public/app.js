@@ -139,10 +139,12 @@ jQuery(function($){
 
         onplayersDisplayAnswer : function(data){
             console.log('onHostDisplayAnswer');
-            
-            console.log('onHostDisplayAnswer');
             App[App.myRole].displayCorrectAnswer(data);
-            App.Player.updatePlayerScore(data);
+            
+            if (App.myRole === 'Players'){
+                App[Player].updatePlayerScore(data);
+            }
+            
             
         },
 
@@ -956,8 +958,8 @@ jQuery(function($){
                     arrayOfScores[i] = tempscore.text();
                     var tempid = App.Host.players[i].mySocketId;
                     arrayOfSocketIDs[i] = tempid;
-                    console.log('ID of player'+i+'is'+arrayOfSocketIDs[i]);
-                    console.log('Score of player'+i+'is'+arrayOfScores[i]);
+                    console.log('ID of player'+i+'is '+arrayOfSocketIDs[i]);
+                    console.log('Score of player'+i+'is '+arrayOfScores[i]);
                 }
 				
 				// Prepare data to send to the server
@@ -979,6 +981,7 @@ jQuery(function($){
                     nbSeconds = 12000;
                 }
                 setTimeout(function(){
+                    console.log('Host is gonna emit the signal hostNextRound');
                     for (var i=0; i<App.Host.numPlayersInRoom; i++){
                         App.Host.players[i].hasAlreadyAnswered = false;
                         delete App.Host.players[i].currentAnswer;
@@ -989,7 +992,7 @@ jQuery(function($){
                     $('#hostAnswers').html('');
                     
                 },nbSeconds)
-				
+				console.log('end of endThisRound fucntion');
 			 },
 
              /*
