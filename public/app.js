@@ -16,7 +16,6 @@ jQuery(function($){
         init: function() {
             IO.socket = io.connect();
             IO.bindEvents();
-
         },
 
         /**
@@ -746,6 +745,7 @@ jQuery(function($){
                                 .append($('<div/>')
                                     .append($('<div/>').addClass('answerHostPercentage').attr('id','percentage').html(''))
                                     .append($('<div/>').addClass('answersHost').attr('value',(this['value'])).html(this['value']))
+                                    .append($('<div/>').addClass('answerHostPercentageBar').attr('id','percentageBar').html('').append($('<div>').html('')))
                                 )
                                 
                             )             
@@ -989,9 +989,9 @@ jQuery(function($){
                         delete App.Host.players[i].currentAnswer;
                     }
                     
-                    IO.socket.emit('hostNextRound',data);
+                    //IO.socket.emit('hostNextRound',data);
                     // Delete the display of the answers
-                    $('#hostAnswers').html('');
+                    //$('#hostAnswers').html('');
                     
                 },nbSeconds)
 				console.log('end of endThisRound fucntion');
@@ -1006,7 +1006,8 @@ jQuery(function($){
 
                 switch(App.Host.questionData.questionType){
                     case 'multipleChoiceSingleAnswer':
-                        App.Host.displayCorrectAnswerMultipleChoiceQuestions();
+                        App.Host.displayPercentageMultiChoice();
+                        setTimeout(App.Host.displayCorrectAnswerMultipleChoiceQuestions,5000);
                         break;
                     
                     case 'openQuestion':
@@ -1024,17 +1025,58 @@ jQuery(function($){
                 }
              },
 
+             displayPercentageMultiChoice: function(){
+                var counts = [];
+                for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
+                    var value = App.Host.questionData.arrayOfAnswers[i]['value'];
+
+                    // Calculates the percentage of players that have chosen this answer
+                    var count = 0;
+                    //console.log('value for this button: ' + value);
+                    for(var j=0; j<App.Host.players.length; j++){
+                        //console.log(App.Host.players[j]);
+                        //console.log('player answer: ' + App.Host.players[j].currentAnswer);
+                        if(App.Host.players[j].currentAnswer === value){
+                            count += 1;
+                        }
+                    }
+
+                    counts[i] = count/App.Host.numPlayersInRoom*100;
+                    console.log('counts[i] '+counts[i])
+                    console.log('duration :' + 5000 * counts[i]/100)
+                }
+
+                $('.answerHostPercentageBar').each(function(index){
+                    var percentage = counts[index] + '%';
+                    $(this).children().animate({width: percentage}, {duration : 5000 * counts[index]/100,
+                                                                    easing: 'linear',
+                                                                    queue: false,
+                                                                    step: function(now, fx) {
+                                                                       if(fx.prop == 'width') {
+                                                                           $(this).html('   ' + Math.round(now) + '%');
+                                                                       }
+                                                                    }})
+                });
+
+             },
+
              /**
               * Function that displays the correct answers for the multiple choice questions
               */
             displayCorrectAnswerMultipleChoiceQuestions : function(){
+                var values = [];
                 for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
                     var value = App.Host.questionData.arrayOfAnswers[i]['value'];
                     if(App.Host.questionData.arrayOfAnswers[i]['bool']){
+                        values[i] = value;
+                        console.log(value)
                         //Find the corresponding item and change its css and setting background to green
-                        $('#ulAnswersHost').find("[value='"+value+"']").css('background-color','#008000');
+                        //$('#ulAnswersHost').find("[value='"+value+"']").css('background-color','#008000');
                     }
 
+
+                    // The following code displays circular progress bars at the end of the question
+                    /*
                     // Calculates the percentage of players that have chosen this answer
                     var count = 0;
                     //console.log('value for this button: ' + value);
@@ -1082,7 +1124,28 @@ jQuery(function($){
                             })
 
                    });
+                */
                 }
+            var flashInterval = setInterval(function() {
+                for(var j=0; j<values.length; j++){
+                    if(typeof(values[j]) != undefined){
+                        console.log('in')
+                        console.log(values[j])
+                        $('#ulAnswersHost').find("[value='"+values[j]+"']").toggleClass('flashing-border');
+                    }
+                }
+            }, 300);
+
+            // Stop flashing after 5 seconds
+            setTimeout(function(){
+                for(var j=0; j<values.length; j++){
+                    if(typeof(values[j]) != undefined){
+                        clearInterval(flashInterval)
+                        console.log('in setTimeout ' + values[j])
+                        $('#ulAnswersHost').find("[value='"+values[j]+"']").toggleClass('flashing-border');
+                    }
+                }
+            },5000)
             },
 
 			 
@@ -1105,19 +1168,21 @@ jQuery(function($){
                     if(index<App.Host.questionData.correctOrderArrayOfAnswers.length-1){
                         App.Host.putPriorityAnswerAtCorrectPosition(index+1);
                     }
+
+                    // The following code allows to display circular progress bars next to the answers.
+                    /*
                     else{
                         console.log('setting timer');
-                        setTimeout(App.Host.displayPercentagePriorityRanking, 2000);
+                        setTimeout(App.Host.displayCircularPercentagePriorityRanking, 2000);
                     }
+                    */
                 };
-                //console.log('slide up')
-                //console.log(index);
+                
                 $li.slideUp(1000, callback).slideDown(1000);
-                //console.log('after slide up');
-                //console.log(index);
+                
             },
 
-            displayPercentagePriorityRanking : function(){
+            displayCircularPercentagePriorityRanking : function(){
                 console.log('end of timer')
                 for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
                     var value = App.Host.questionData.correctOrderArrayOfAnswers[i]['value'];
