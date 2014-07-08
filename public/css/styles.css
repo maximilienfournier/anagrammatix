@@ -18,6 +18,8 @@ Yellow      : #FFCC00
 
 */
 
+
+
 html, body {
     /*background-color: #59ACFF;*/
     background-color: #F8F8F8;
@@ -582,6 +584,7 @@ html, body {
     text-align: center;
     display: inline-block;
     vertical-align: middle;
+    position: relative;
 }
 .answersHost{
     width: 50%;
@@ -597,6 +600,36 @@ html, body {
     vertical-align:top;
 }
 
+.answersHost.flashing-border{ 
+    border: 5px solid #008000; 
+    margin-top: -3px;
+    margin-bottom: -3px;
+    width: calc(50% + 10px);
+    margin-left: calc(25% - 5px);
+
+}
+
+#percentageBar{
+    position: absolute;
+    top: 12px;
+    left: 5px;
+    height: calc(100% - 25px);
+    width: calc(50% - 10px);
+    text-align: center;
+    margin-left: 25%;
+    vertical-align:top;
+    opacity:0.5;
+}
+#percentageBar > div {
+   background-color: blue;
+   width: 0%; /* Adjust with JavaScript */
+   height: 100%;
+   text-align: left;
+   vertical-align: middle;
+   color: black;
+   font-size: 2em;
+   /*border-radius: 10px;*/
+}
 .answerHostPercentage{
     width:30%;
     vertical-align:middle;
