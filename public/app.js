@@ -978,9 +978,9 @@ jQuery(function($){
                 IO.socket.emit('hostDisplayAnswer', data);
 				
 				// Notify the server to start the next round after x seconds.
-                var nbSeconds = 5000;
+                var nbSeconds = 10000;
                 if(App.Host.questionData.questionType === 'priorityQuestion'){
-                    nbSeconds = 12000;
+                    nbSeconds = 15000;
                 }
                 setTimeout(function(){
                     console.log('Host is gonna emit the signal hostNextRound');
@@ -989,9 +989,9 @@ jQuery(function($){
                         delete App.Host.players[i].currentAnswer;
                     }
                     
-                    //IO.socket.emit('hostNextRound',data);
+                    IO.socket.emit('hostNextRound',data);
                     // Delete the display of the answers
-                    //$('#hostAnswers').html('');
+                    $('#hostAnswers').html('');
                     
                 },nbSeconds)
 				console.log('end of endThisRound fucntion');
@@ -1017,7 +1017,8 @@ jQuery(function($){
 
                     
                     case 'priorityQuestion':
-                        App.Host.putPriorityAnswerAtCorrectPosition(0);
+                        App.Host.displayPercentagePriorityRanking();
+                        setTimeout(function(){App.Host.putPriorityAnswerAtCorrectPosition(0);},5000);
                         break;
                     
                     default:
@@ -1162,7 +1163,11 @@ jQuery(function($){
                 var callback = function() {
                     
                     $li.insertBefore($li.siblings(':eq('+ index +')'));
-                    $btn.css('background-color', '#008000');
+                    // Displays the answers in green. Commented for now
+                    //$btn.css('background-color', '#008000');
+
+                    // Display the border in green
+                    $('#ulAnswersHost').find("[value='"+correctWordAtThisPosition+"']").toggleClass('flashing-border');
                     
                     // Calls the next answer diplay if necessary
                     if(index<App.Host.questionData.correctOrderArrayOfAnswers.length-1){
@@ -1182,8 +1187,35 @@ jQuery(function($){
                 
             },
 
+            displayPercentagePriorityRanking: function(){
+                var counts = [];
+                for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
+                    var value = App.Host.questionData.correctOrderArrayOfAnswers[i]['value'];
+
+                    // Calculates the percentage of players that have chosen this answer
+                    var count = 0;
+                    for(var j=0; j<App.Host.players.length; j++){
+                        if(App.Host.players[j].currentAnswer[i] === value){
+                            count += 1;
+                        } 
+                    }
+                    counts[i] = count/App.Host.numPlayersInRoom*100
+                }
+
+                $('.answerHostPercentageBar').each(function(index){
+                    var percentage = counts[index] + '%';
+                    $(this).children().animate({width: percentage}, {duration : 5000 * counts[index]/100,
+                                                                    easing: 'linear',
+                                                                    queue: false,
+                                                                    step: function(now, fx) {
+                                                                       if(fx.prop == 'width') {
+                                                                           $(this).html('   ' + Math.round(now) + '%');
+                                                                       }
+                                                                    }})
+                });
+            },
+
             displayCircularPercentagePriorityRanking : function(){
-                console.log('end of timer')
                 for (var i=0; i<App.Host.questionData.arrayOfAnswers.length; i++){
                     var value = App.Host.questionData.correctOrderArrayOfAnswers[i]['value'];
 
@@ -1881,14 +1913,7 @@ jQuery(function($){
                 switch(App.Player.questionData.questionType){
 
                     case 'multipleChoiceSingleAnswer':
-                        for (var i=0; i<App.Player.questionData.arrayOfAnswers.length; i++){
-                            if(App.Player.questionData.arrayOfAnswers[i]['bool']){
-                                // Find the corresponding item and change its css
-                                var value = App.Player.questionData.arrayOfAnswers[i]['value'];
-                                // Setting background to green
-                                $('#ulAnswers').find("[value='"+value+"']").css('background-color','#008000');
-                            }
-                        }
+                        setTimeout(App.Player.displayCorrectAnswerMultipleChoiceQuestions,5000);
                         break;
 
                     case 'openQuestion':
@@ -1896,7 +1921,7 @@ jQuery(function($){
                         break;
 
                     case 'priorityQuestion':
-                        App.Player.putPriorityAnswerAtCorrectPosition(0);
+                        setTimeout(function(){App.Player.putPriorityAnswerAtCorrectPosition(0);},5000); 
                         break;
 
                     default:
@@ -1925,6 +1950,17 @@ jQuery(function($){
                 $('#playerScore')
                 .find('.score')
                 .html(myScore);                
+            },
+
+            displayCorrectAnswerMultipleChoiceQuestions : function(){
+                for (var i=0; i<App.Player.questionData.arrayOfAnswers.length; i++){
+                    if(App.Player.questionData.arrayOfAnswers[i]['bool']){
+                        // Find the corresponding item and change its css
+                        var value = App.Player.questionData.arrayOfAnswers[i]['value'];
+                        // Setting background to green
+                        $('#ulAnswers').find("[value='"+value+"']").css('background-color','#008000');
+                    }
+                }
             },
 
             putPriorityAnswerAtCorrectPosition : function(index){
