@@ -137,13 +137,13 @@ jQuery(function($){
          * Called at the end of the round to display the correct answer and update the score
          */
 
-        onplayersDisplayAnswer : function(data){
+        onplayersDisplayAnswer : function(data){            
             console.log('onHostDisplayAnswer');
-            
-            console.log('onHostDisplayAnswer');
+            if(App.myRole === 'Player') {
+                console.log('Calling updatePlayerScore')
+                App.Player.updatePlayerScore(data);
+            }
             App[App.myRole].displayCorrectAnswer(data);
-            App[App.myRole].updatePlayerScore(data);
-            
         },
 
 
@@ -767,16 +767,48 @@ jQuery(function($){
                 var text = "Time to take a break!";
                 $('#hostWord').text(text);
                 App.doTextFit('#hostWord');
+
+                /*
+                // Creates an array with the players score and name
+                var arrayOfNames =[];
+                for (var i=0; i< App.Host.numPlayersInRoom; i++){ 
+                    arrayOfNamesAndScores
+                }
+                */
+
+                // Create an array of players and score
+                var sortArray = [];
+                for (var i=0; i< App.Host.numPlayersInRoom; i++){
+                    var currentPlayerName = App.Host.players[i].playerName;
+                    var currentPlayerScore = App.Host.players[i].score;
+                    sortArray.push({
+                        name: currentPlayerName,
+                        score: currentPlayerScore,
+                    });
+                    // alert(JSON.stringify(sortArray[i], null, 4));                    
+                }
+
+                sortArray.sort(function(a, b) { return b.score - a.score});
+
+                // Create a leaderboard with the players' name & score
+                // Insert it into the screen
+                var leaderboardContent = new String();
+                for (var i=0; i< App.Host.numPlayersInRoom; i++){
+                    var leaderboardContent = leaderboardContent + "<div id='player"+ (i+1) +"Score' class='playerScore'><span class='rank'>" + (i+1) +"</span><span class='playerName'>" + sortArray[i].name +"</span><span class='score2'>"+ sortArray[i].score +"pts </span></div>";
+                    console.log('leaderboardContent'+leaderboardContent);
+                }
+
+                leaderboardContent = "Here is the ranking!" + leaderboardContent;
+                $('#leaderboard').html(leaderboardContent);
                 
                 // Creates a button to continue game
-                
                 var $btnContinueGame = $('<button/>')   
                             .addClass('btn')        
                             .addClass('btnContinueGame')
                             .attr('id','btnContinueGame')
                             .html('Going to the next round!')
                 
-                // Insert the list onto the screen.
+                // Insert the button onto the screen.
                 $('#divBtnContinueGame').html($btnContinueGame);
 
                 App.Host.questionData = data;
