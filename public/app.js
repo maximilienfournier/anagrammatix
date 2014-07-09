@@ -911,6 +911,7 @@ jQuery(function($){
                 console.log('endOfPause');
                 // Deletes the 'Continue' button displayed during the pause
                 $('#divBtnContinueGame').html('');
+                $('#leaderboard').html('');
                 App.currentRound += 1;
 
                 var data = {
