@@ -778,6 +778,29 @@ jQuery(function($){
                 $('#hostWord').text(text);
                 App.doTextFit('#hostWord');
 
+                $('#leaderboard').html(App.Host.generateLeaderboard(data));
+                
+                // Creates a button to continue game
+                var $btnContinueGame = $('<button/>')   
+                            .addClass('btn')        
+                            .addClass('btnContinueGame')
+                            .attr('id','btnContinueGame')
+                            .html('Going to the next round!')
+                
+                // Insert the button onto the screen.
+                $('#divBtnContinueGame').html($btnContinueGame);
+
+                App.Host.questionData = data;
+                App.Host.currentRound = data.round;
+             },
+
+
+             /**
+              * Function called to create a leaderboard in html that ranks the players
+              */
+
+            generateLeaderboard: function(data){
+
                 // Create an array of players and score
                 var sortArray = [];
                 for (var i=0; i< App.Host.numPlayersInRoom; i++){
@@ -796,26 +819,13 @@ jQuery(function($){
                 // Insert it into the screen
                 var leaderboardContent = new String();
                 for (var i=0; i< App.Host.numPlayersInRoom; i++){
-                    var leaderboardContent = leaderboardContent + "<div id='player"+ (i+1) +"Score' class='playerScore'><span class='rank'>" + (i+1) +"</span><span class='playerName'>" + sortArray[i].name +"</span><span class='score2'>"+ sortArray[i].score +"pts </span></div>";
+                    var leaderboardContent = leaderboardContent + "<div id='player"+ (i+1) +"Score' class='playerScore'><span class='rank'>" + (i+1) +"</span><span class='playerName'>" + sortArray[i].name +"</span><span class='score2'>"+ sortArray[i].score +" pts </span></div>";
                     console.log('leaderboardContent'+leaderboardContent);
                 }
 
-                leaderboardContent = "Here is the ranking!" + leaderboardContent;
-                $('#leaderboard').html(leaderboardContent);
-                
-                // Creates a button to continue game
-                var $btnContinueGame = $('<button/>')   
-                            .addClass('btn')        
-                            .addClass('btnContinueGame')
-                            .attr('id','btnContinueGame')
-                            .html('Going to the next round!')
-                
-                // Insert the button onto the screen.
-                $('#divBtnContinueGame').html($btnContinueGame);
+                return leaderboardContent;
+            },
 
-                App.Host.questionData = data;
-                App.Host.currentRound = data.round;
-             },
 
              /**
               * Function called at the beginning of the round to present its properties
@@ -1180,7 +1190,7 @@ jQuery(function($){
                         $('#ulAnswersHost').find("[value='"+values[j]+"']").toggleClass('flashing-border');
                     }
                 }
-            },5000)
+            },3000)
             },
 
 			 
@@ -1396,6 +1406,7 @@ jQuery(function($){
                 // If needed, we can change the function to get the score of the player by name. We'll see what's more convenient
                 // In that case use App.Host.players[i].playerName
 
+                console.log('this round is',round);
                 // The round number of the first round is 0.
                 var scoreForRound = 0
                 var array = App.Host.players[playerIndex].arrayOfScores[round]
@@ -1553,27 +1564,13 @@ jQuery(function($){
              * @param data
              */
             endGame : function(data) {
-                // Get the data for player 1 from the host screen
-                var $p1 = $('#player1Score');
-                var p1Score = +$p1.find('.score').text();
-                var p1Name = $p1.find('.playerName').text();
+                
+                // Display that the game is over
+                var $endText = $('<div/>').attr('id','pausingText').html('Game over! Here is the final ranking:').addClass('info');
+                $('#hostWord').html($endText);
 
-                // Get the data for player 2 from the host screen
-                var $p2 = $('#player2Score');
-                var p2Score = +$p2.find('.score').text();
-                var p2Name = $p2.find('.playerName').text();
-
-                // Find the winner based on the scores
-                var winner = (p1Score < p2Score) ? p2Name : p1Name;
-                var tie = (p1Score === p2Score);
-
-                // Display the winner (or tie game message)
-                if(tie){
-                    $('#hostWord').text("It's a Tie!");
-                } else {
-                    $('#hostWord').text( winner + ' Wins!!' );
-                }
-                App.doTextFit('#hostWord');
+                // Display the leaderboard
+                $('#leaderboard').html(App.Host.generateLeaderboard(data));
 
                 // Reset game data
                 App.Host.numPlayersInRoom = 0;
@@ -1586,6 +1583,9 @@ jQuery(function($){
             restartGame : function() {
                 App.$gameArea.html(App.$templateNewGame);
                 $('#spanNewGameCode').text(App.gameId);
+
+                // Remove leaderboard
+                $('#leaderboard').html('');
             }
         },
 
@@ -1691,7 +1691,7 @@ jQuery(function($){
                     playerId: App.mySocketId,
                     playerName: App.Player.myName,
                     answer: answer,
-                    round: App.currentRound,
+                    round: App.current,
                     timeOfAnswer: new Date().getTime()
                 }
                 IO.socket.emit('playerAnswer',data);
@@ -2026,10 +2026,12 @@ jQuery(function($){
                 var oldScore = $('#playerScore').find('.score').html();
 
                 if (myScore-oldScore >= 0){
-                    var message = '+'+(myScore-oldScore).toString();
+                    var delta = Math.round((myScore-oldScore) * 100) / 100;
+                    var message = '+'+(delta).toString();
                 }
                 else{
-                    var message = (myScore-oldScore).toString();
+                    var delta = Math.round((myScore-oldScore) * 100) / 100;
+                    var message = '-'+(delta).toString();
                 }
                 var $displayScore = $('<p/>').html(message).css({
                     "position":"absolute",
