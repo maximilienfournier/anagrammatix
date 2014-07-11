@@ -1470,6 +1470,7 @@ jQuery(function($){
                     var levenshtein = App.getEditDistance(playerAnswer.toLowerCase(), App.Host.questionData.arrayOfAnswers[0]['value'].toLowerCase());
                     if (levenshtein < Math.round(App.Host.questionData.arrayOfAnswers[0]['value'].length*0.2)){
                         scoreForThisRound = App.Host.maxPoints;
+                    }
                     else{
                         scoreForThisRound = App.Host.minPoints;
                     }
@@ -2021,9 +2022,32 @@ jQuery(function($){
                 //console.log('my player socket ID is'+data.arrayOfSocketIDs[i]);
                 var myScore = data.arrayOfScores[i];
                 console.log('my Score is '+myScore);
-                $('#playerScore')
-                .find('.score')
-                .html(myScore);                
+
+                var oldScore = $('#playerScore').find('.score').html();
+
+                if (myScore-oldScore >= 0){
+                    var message = '+'+(myScore-oldScore).toString();
+                }
+                else{
+                    var message = (myScore-oldScore).toString();
+                }
+                var $displayScore = $('<p/>').html(message).css({
+                    "position":"absolute",
+                    "font-size":"2em",
+                    'width':'20%',
+                    'height':'16%',
+                    'top':'0px',
+                    'left':'0px',
+                    'vertical-align': 'middle',
+                    'text-align': 'center',
+                    'font-weight':'900',
+                    'padding-top':'2%'});
+                //$('#scoreMessage').html($displayScore)
+                $('#gameArea').append($displayScore)
+                $displayScore.fadeOut( "slow", function() {});
+
+
+                $('#playerScore').find('.score').html(myScore);               
             },
 
             displayCorrectAnswerMultipleChoiceQuestions : function(){

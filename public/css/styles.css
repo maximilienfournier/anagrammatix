@@ -785,6 +785,13 @@ html, body {
     border: 1px solid black;
     
 }
+
+#scoreMessage{
+    position: absolute;
+    width:20%;
+    height:16%;
+    top:16%;
+}
 /* ******************************
           TITLE SCREEN
      (intro-screen-template)
