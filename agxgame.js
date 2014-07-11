@@ -595,5 +595,16 @@ var PausingObject = {
     text: 'This is the text to be displayed during the pause'
 };
 
-var QuestionPool = [QuestionObject2, QuestionObject5, PausingObject, QuestionObject4, QuestionObject3, QuestionObject1]
+var RoundPresentation = {
+    questionType: 'roundPresentation',
+    roundIndex: 1,
+    setupOfGame: {  tag: '1', 
+                    questionType: 'priorityQuestion',
+                    numberOfQuestions: 2,
+                    difficulty: 'hard',
+                    speedScoring: false
+                 }
+};
+
+var QuestionPool = [RoundPresentation, QuestionObject2, QuestionObject5, PausingObject, QuestionObject4, QuestionObject3, QuestionObject1]
 

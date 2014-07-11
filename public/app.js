@@ -140,8 +140,15 @@ jQuery(function($){
         onplayersDisplayAnswer : function(data){            
             console.log('onHostDisplayAnswer');
             if(App.myRole === 'Player') {
-                console.log('Calling updatePlayerScore')
-                App.Player.updatePlayerScore(data);
+                if (data.questionType === 'multipleChoiceSingleAnswer' || data.questionType === 'priorityQuestion'){
+                    var nbSeconds = 5000;
+                }
+                else{
+                    var nbSeconds = 10;
+                }
+                setTimeout(function(){console.log('Calling updatePlayerScore');
+                App.Player.updatePlayerScore(data);}
+                ,nbSeconds)
             }
             App[App.myRole].displayCorrectAnswer(data);
         },
@@ -647,6 +654,7 @@ jQuery(function($){
                     	App.Host.players[i].hasAlreadyAnswered = false;
                     	//App.Host.players[i].correctAnswer = false;
                         App.Host.players[i].answer = '';
+                        App.Host.players[i].arrayOfScores = [];
                     }
                 }
             },
@@ -770,19 +778,11 @@ jQuery(function($){
                 $('#hostWord').text(text);
                 App.doTextFit('#hostWord');
 
-                /*
-                // Creates an array with the players score and name
-                var arrayOfNames =[];
-                for (var i=0; i< App.Host.numPlayersInRoom; i++){ 
-                    arrayOfNamesAndScores
-                }
-                */
-
                 // Create an array of players and score
                 var sortArray = [];
                 for (var i=0; i< App.Host.numPlayersInRoom; i++){
                     var currentPlayerName = App.Host.players[i].playerName;
-                    var currentPlayerScore = App.Host.players[i].score;
+                    var currentPlayerScore = App.Host.getTotalScoreOfPlayerInAllRounds(i);
                     sortArray.push({
                         name: currentPlayerName,
                         score: currentPlayerScore,
@@ -882,6 +882,13 @@ jQuery(function($){
                 document.getElementById("roundProperties").style.border = "solid";
                 $('#divBtnBeginGame').html($buttonBeginNextRound);
 
+
+                // For each player, creates the array in which the scores of this round will be stored
+                for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                    console.log("Creating the arrays for this round");
+                    App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1]=[]
+                    console.log(App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1]);
+                }
             },
 
             /**
@@ -986,7 +993,7 @@ jQuery(function($){
                 var arrayOfScores = [];
                 var arrayOfSocketIDs = [];
                 for (var i=0; i<App.Host.numPlayersInRoom; i++){
-                    var tempscore = App.Host.players[i].score;
+                    var tempscore = App.Host.getTotalScoreOfPlayerInAllRounds(i);
                     console.log ('temporary var is'+tempscore);
                     arrayOfScores[i] = tempscore;
                     var tempid = App.Host.players[i].mySocketId;
@@ -1000,13 +1007,14 @@ jQuery(function($){
 					gameId : App.gameId,
 					round : App.currentRound, 
                     arrayOfScores : arrayOfScores,
-                    arrayOfSocketIDs : arrayOfSocketIDs
+                    arrayOfSocketIDs : arrayOfSocketIDs,
+                    questionType : App.Host.questionData.questionType
 				}
 				
 				// Stops the timeout
 				clearTimeout(App.Host.timeOut);
-                console.log('The host is gonna emit the signal hostDisplayAnswer');
                 IO.socket.emit('hostDisplayAnswer', data);
+
 				
 				// Notify the server to start the next round after x seconds.
                 var nbSeconds = 10000;
@@ -1074,8 +1082,6 @@ jQuery(function($){
                     }
 
                     counts[i] = count/App.Host.numPlayersInRoom*100;
-                    console.log('counts[i] '+counts[i])
-                    console.log('duration :' + 5000 * counts[i]/100)
                 }
 
                 $('.answerHostPercentageBar').each(function(index){
@@ -1161,8 +1167,6 @@ jQuery(function($){
             var flashInterval = setInterval(function() {
                 for(var j=0; j<values.length; j++){
                     if(typeof(values[j]) != undefined){
-                        console.log('in')
-                        console.log(values[j])
                         $('#ulAnswersHost').find("[value='"+values[j]+"']").toggleClass('flashing-border');
                     }
                 }
@@ -1173,7 +1177,6 @@ jQuery(function($){
                 for(var j=0; j<values.length; j++){
                     if(typeof(values[j]) != undefined){
                         clearInterval(flashInterval)
-                        console.log('in setTimeout ' + values[j])
                         $('#ulAnswersHost').find("[value='"+values[j]+"']").toggleClass('flashing-border');
                     }
                 }
@@ -1333,14 +1336,16 @@ jQuery(function($){
             }, 
 
              /**
-             * Calculate the scores after the end of the round*
+             * Calculate the scores after the end of the round
              */
              calculateScores : function(){
 			     // Calls the appropriate scoring function for each player
                  for (var i=0; i<App.Host.numPlayersInRoom; i++){
+                    /*
                     if (typeof(App.Host.players[i].score) === 'undefined'){
                         App.Host.players[i].score = 0;
                     }
+                    */
 
                     var $pScore = $('#' + App.Host.players[i].mySocketId);
                     var scoreForThisRound = 0;
@@ -1377,12 +1382,43 @@ jQuery(function($){
                      $pScore.text( +$pScore.text() +  scoreForThisRound);
                      console.log('Points for player ' + App.Host.players[i].mySocketId + ' for this round: ' + scoreForThisRound);
 
-                     console.log('App.Host.players[i].score before'+App.Host.players[i].score);
-                     App.Host.players[i].score = App.Host.players[i].score+scoreForThisRound;
-                     console.log('App.Host.players[i].score after'+App.Host.players[i].score);
+                     // Saves the score in the array of scores of the player
+                     App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1][App.Host.questionNumberInCurrentRound-1]=scoreForThisRound
+
+                     console.log('Total points for player for this round after array has been upated: ' + App.Host.getTotalScoreOfPlayerInCurrentRound(i))
+
                      App.Host.players[i].answer = '';
                      App.Host.players[i].timeOfAnswer = 0;
                  }
+             },
+
+             getTotalScoreOfPlayerInGivenRound : function(playerIndex, round){
+                // If needed, we can change the function to get the score of the player by name. We'll see what's more convenient
+                // In that case use App.Host.players[i].playerName
+
+                // The round number of the first round is 0.
+                var scoreForRound = 0
+                var array = App.Host.players[playerIndex].arrayOfScores[round]
+                for (var i=0; i<array.length; i++){
+                    scoreForRound += array[i]
+                }
+
+                return Math.round(scoreForRound * 100) / 100
+                
+             },
+
+             getTotalScoreOfPlayerInCurrentRound : function(playerIndex){
+                
+                return App.Host.getTotalScoreOfPlayerInGivenRound(playerIndex, App.Host.currentRoundNumber-1)
+                
+             },
+
+             getTotalScoreOfPlayerInAllRounds : function(playerIndex){
+                var totalScore = 0;
+                for (var j=0; j<App.Host.currentRoundNumber; j++){
+                    totalScore += App.Host.getTotalScoreOfPlayerInGivenRound(playerIndex, j)
+                }
+                return Math.round(totalScore * 100) / 100
              },
 
              arrayObjectIndexOf : function (myArray, searchTerm, name) {
@@ -1432,9 +1468,8 @@ jQuery(function($){
                     */
                     // The Levenshtein represents the distance between the two strings
                     var levenshtein = App.getEditDistance(playerAnswer.toLowerCase(), App.Host.questionData.arrayOfAnswers[0]['value'].toLowerCase());
-                    if (levenshtein < 4){
+                    if (levenshtein < Math.round(App.Host.questionData.arrayOfAnswers[0]['value'].length*0.2)){
                         scoreForThisRound = App.Host.maxPoints;
-                    }
                     else{
                         scoreForThisRound = App.Host.minPoints;
                     }
