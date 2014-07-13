@@ -896,7 +896,7 @@ jQuery(function($){
                 // For each player, creates the array in which the scores of this round will be stored
                 for (var i=0; i<App.Host.numPlayersInRoom; i++){
                     console.log("Creating the arrays for this round");
-                    App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1]=[]
+                    App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1]=[];
                     console.log(App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1]);
                 }
             },
@@ -1393,6 +1393,8 @@ jQuery(function($){
                      console.log('Points for player ' + App.Host.players[i].mySocketId + ' for this round: ' + scoreForThisRound);
 
                      // Saves the score in the array of scores of the player
+                     console.log('Player is'+App.Host.players[i].mySocketId);
+                     console.log('scoreForThisRound'+scoreForThisRound);
                      App.Host.players[i].arrayOfScores[App.Host.currentRoundNumber-1][App.Host.questionNumberInCurrentRound-1]=scoreForThisRound
 
                      console.log('Total points for player for this round after array has been upated: ' + App.Host.getTotalScoreOfPlayerInCurrentRound(i))
