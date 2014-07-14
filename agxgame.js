@@ -45,7 +45,7 @@ function hostCreateNewGame(setupOfGame) {
       host     : 'eu-cdbr-west-01.cleardb.com',
       user     : 'ba48a8d8bb9420',
       password : 'a7c09f07',
-      database : 'heroku_109e318ba266730',
+      database : 'heroku_4cbce63f2913925',
     });
     // Create a unique Socket.IO Room
     var thisGameId = ( Math.random() * 100000 ) | 0;
@@ -91,7 +91,7 @@ function createSetOfQuestionFromDB(setupOfGame, gameId){
       host     : 'eu-cdbr-west-01.cleardb.com',
       user     : 'ba48a8d8bb9420',
       password : 'a7c09f07',
-      database : 'heroku_109e318ba266730',
+      database : 'heroku_4cbce63f2913925',
     });
     */
     //var QuestionPoolDB = [];
@@ -121,7 +121,7 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
       host     : 'eu-cdbr-west-01.cleardb.com',
       user     : 'ba48a8d8bb9420',
       password : 'a7c09f07',
-      database : 'heroku_109e318ba266730',
+      database : 'heroku_4cbce63f2913925',
     });
     
     connection.query(queries[index], function(err, rows, fields){
@@ -257,7 +257,8 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
                          {value: row.answer4_text, bool: (row.answer4_correct==1)}, 
                          {value: row.answer5_text, bool: (row.answer5_correct==1)}]
     };
-    //console.log(QuestionObject.arrayOfAnswers);
+    shuffle(QuestionObject.arrayOfAnswers);
+    // console.log(QuestionObject.arrayOfAnswers);
     return QuestionObject;
  };
 /*
@@ -451,7 +452,9 @@ function sendQuestion(QuestionPoolIndex, gameId) {
         }
         var tempArray = data.arrayOfAnswers.slice(0);
         data.correctOrderArrayOfAnswers = tempArray;
-        data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
+        // console.log('data.arrayOfAnswers'+data.arrayOfAnswers);
+        // data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
+        // console.log('data.arrayOfAnswers'+data.arrayOfAnswers);
         for(var i=0;i<data.correctOrderArrayOfAnswers.length;i++){
             console.log(data.correctOrderArrayOfAnswers[i]['value']);
         }
@@ -472,13 +475,30 @@ function clone(obj) {
     return copy;
 }
    
- /**
- * Function that shuffles an array
+/*
+ * Javascript implementation of Fisher-Yates shuffle algorithm
+ * http://stackoverflow.com/questions/2450954/how-to-randomize-a-javascript-array
  */
-function shuffle(o){
-    var o = o.slice();
-    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
-    return o;
+
+function shuffle(array) {
+    var currentIndex = array.length;
+    var temporaryValue;
+    var randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+
+    return array;
 }
 
 /*
@@ -505,33 +525,6 @@ function getQuestionData(i, gameId){
 =====================================
 FIND WORD WITH SAME LETTERS QUESTIONS
 =====================================
-*/
-
-/*
- * Javascript implementation of Fisher-Yates shuffle algorithm
- * http://stackoverflow.com/questions/2450954/how-to-randomize-a-javascript-array
- */
- /*
-function shuffle(array) {
-    var currentIndex = array.length;
-    var temporaryValue;
-    var randomIndex;
-
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-
-    return array;
-}
 */
 
 

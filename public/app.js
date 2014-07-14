@@ -819,7 +819,12 @@ jQuery(function($){
                 // Insert it into the screen
                 var leaderboardContent = new String();
                 for (var i=0; i< App.Host.numPlayersInRoom; i++){
-                    var leaderboardContent = leaderboardContent + "<div id='player"+ (i+1) +"Score' class='playerScore'><span class='rank'>" + (i+1) +"</span><span class='playerName'>" + sortArray[i].name +"</span><span class='score2'>"+ sortArray[i].score +" pts </span></div>";
+                    if (i>0 && sortArray[i].score === sortArray[i-1].score){
+                        var rank = i-1;
+                    } else {
+                        var rank = i;
+                    }
+                    var leaderboardContent = leaderboardContent + "<div id='player"+ (i+1) +"Score' class='playerScore'><span class='rank'>" + (rank+1) +"</span><span class='playerName'>" + sortArray[i].name +"</span><span class='score2'>"+ sortArray[i].score +" pts </span></div>";
                     console.log('leaderboardContent'+leaderboardContent);
                 }
 
@@ -1693,7 +1698,7 @@ jQuery(function($){
                     playerId: App.mySocketId,
                     playerName: App.Player.myName,
                     answer: answer,
-                    round: App.current,
+                    round: App.currentRound,
                     timeOfAnswer: new Date().getTime()
                 }
                 IO.socket.emit('playerAnswer',data);
