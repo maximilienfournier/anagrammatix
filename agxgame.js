@@ -42,9 +42,9 @@ exports.initGame = function(sio, socket){
  */
 function hostCreateNewGame(setupOfGame) {
     var connectionTest = mysql.createConnection({
-      host     : 'us-cdbr-east-06.cleardb.net',
-      user     : 'bf83dd12049197',
-      password : '9f757d98',
+      host     : 'eu-cdbr-west-01.cleardb.com',
+      user     : 'ba48a8d8bb9420',
+      password : 'a7c09f07',
       database : 'heroku_109e318ba266730',
     });
     // Create a unique Socket.IO Room
@@ -88,9 +88,9 @@ function hostCreateNewGame(setupOfGame) {
 
 function createSetOfQuestionFromDB(setupOfGame, gameId){
     /*var connection = mysql.createConnection({
-      host     : 'us-cdbr-east-06.cleardb.net',
-      user     : 'bf83dd12049197',
-      password : '9f757d98',
+      host     : 'eu-cdbr-west-01.cleardb.com',
+      user     : 'ba48a8d8bb9420',
+      password : 'a7c09f07',
       database : 'heroku_109e318ba266730',
     });
     */
@@ -118,9 +118,9 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
     console.log(queries[index]);
     
     var connection = mysql.createConnection({
-      host     : 'us-cdbr-east-06.cleardb.net',
-      user     : 'bf83dd12049197',
-      password : '9f757d98',
+      host     : 'eu-cdbr-west-01.cleardb.com',
+      user     : 'ba48a8d8bb9420',
+      password : 'a7c09f07',
       database : 'heroku_109e318ba266730',
     });
     
