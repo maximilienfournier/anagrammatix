@@ -257,8 +257,6 @@ function createQuestionPoolDBRound(setupOfGame, gameId, index){
                          {value: row.answer4_text, bool: (row.answer4_correct==1)}, 
                          {value: row.answer5_text, bool: (row.answer5_correct==1)}]
     };
-    shuffle(QuestionObject.arrayOfAnswers);
-    // console.log(QuestionObject.arrayOfAnswers);
     return QuestionObject;
  };
 /*
@@ -445,24 +443,18 @@ TOUCHI'S QUESTIONS
  */
 function sendQuestion(QuestionPoolIndex, gameId) {
     var data = clone(getQuestionData(QuestionPoolIndex, gameId));
+    // In the case of openQuestion, the order of the answers in correctOrderArrayOfAnswers is saved
     if (data.questionType === 'priorityQuestion'){
-        console.log('arrayOfAnswers at beginning');
-        for(var i=0;i<data.arrayOfAnswers.length;i++){
-            console.log(data.arrayOfAnswers[i]['value']);
-        }
         var tempArray = data.arrayOfAnswers.slice(0);
         data.correctOrderArrayOfAnswers = tempArray;
-        // console.log('data.arrayOfAnswers'+data.arrayOfAnswers);
-        // data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
-        // console.log('data.arrayOfAnswers'+data.arrayOfAnswers);
-        for(var i=0;i<data.correctOrderArrayOfAnswers.length;i++){
-            console.log(data.correctOrderArrayOfAnswers[i]['value']);
-        }
-        console.log('arrayOfAnswers');
-        for(var i=0;i<data.arrayOfAnswers.length;i++){
-            console.log(data.arrayOfAnswers[i]['value']);
-        }
+        
+        
     }
+    // Shuffling the order of the answers in the cases where we need it
+    if (data.questionType === 'multipleChoiceSingleAnswer' || data.questionType === 'priorityQuestion'){
+        data.arrayOfAnswers = shuffle(data.arrayOfAnswers);
+    }
+
     io.sockets.in(data.gameId).emit('newQuestionData', data);
 }
 
